@@ -78,61 +78,23 @@
 
         </LinearLayout>
         
-        <LinearLayout
-            android:id="@+id/smileysIconLayout"
-            android:layout_width="match_parent"
+        <HorizontalScrollView
+            android:id="@+id/iconScrollView"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:visibility="gone" >
+            android:layout_gravity="center"
+            android:animateLayoutChanges="true" >
 
-                <ImageButton
-                    android:id="@+id/imageHappy"
-                    android:layout_width="45dp"
-                    android:layout_height="45dp"
-                    android:onClick="smileyClick"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/smiley_happy" />
-
-                <ImageButton
-                    android:id="@+id/imageLove"
-                    android:layout_width="45dp"
-                    android:layout_height="45dp"
-                    android:onClick="smileyClick"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/smiley_love" />
-
-                <ImageButton
-                    android:id="@+id/imageCool"
-                    android:layout_width="45dp"
-                    android:layout_height="45dp"
-                    android:onClick="smileyClick"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/smiley_cool" />
-
-                <ImageButton
-                    android:id="@+id/imageWink"
-                    android:layout_width="45dp"
-                    android:layout_height="45dp"
-                    android:onClick="smileyClick"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/smiley_wink" />
-
-                <ImageButton
-                    android:id="@+id/imageSad"
-                    android:layout_width="45dp"
-                    android:layout_height="45dp"
-                    android:onClick="smileyClick"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/smiley_sad" />
-
-                <ImageButton
-                    android:id="@+id/imageDead"
-                    android:layout_width="45dp"
-                    android:layout_height="45dp"
-                    android:onClick="smileyClick"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/smiley_dead" />
+            <LinearLayout
+                android:id="@+id/smileysIconLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:animateLayoutChanges="true"
+                android:gravity="center"
+                android:orientation="horizontal" >
             </LinearLayout>
+
+        </HorizontalScrollView>
 
         <LinearLayout
             android:layout_width="match_parent"

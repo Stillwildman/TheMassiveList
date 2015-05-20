@@ -43,25 +43,20 @@ public final class R {
         public static final int exGroupLayout=0x7f090003;
         public static final int groupText1=0x7f090006;
         public static final int groupText2=0x7f090007;
+        public static final int iconScrollView=0x7f09000f;
         public static final int iconsLayout=0x7f09000e;
-        public static final int imageCool=0x7f090012;
-        public static final int imageDead=0x7f090015;
-        public static final int imageHappy=0x7f090010;
-        public static final int imageLove=0x7f090011;
-        public static final int imageSad=0x7f090014;
-        public static final int imageWink=0x7f090013;
         public static final int loadingBar=0x7f090000;
         public static final int loadingImage=0x7f090005;
         public static final int loadingText=0x7f090001;
         public static final int memTip=0x7f09000a;
-        public static final int menu_clear=0x7f090019;
-        public static final int menu_test=0x7f09001a;
+        public static final int menu_clear=0x7f090014;
+        public static final int menu_test=0x7f090015;
         public static final int numberInput=0x7f090009;
         public static final int sampleExList=0x7f09000c;
-        public static final int sendBtn=0x7f090018;
-        public static final int showIconBtn=0x7f090016;
-        public static final int smileysIconLayout=0x7f09000f;
-        public static final int textInput=0x7f090017;
+        public static final int sendBtn=0x7f090013;
+        public static final int showIconBtn=0x7f090011;
+        public static final int smileysIconLayout=0x7f090010;
+        public static final int textInput=0x7f090012;
     }
     public static final class layout {
         public static final int dialog_layout=0x7f030000;
