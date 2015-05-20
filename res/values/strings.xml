@@ -4,7 +4,7 @@
     <string name="app_name">TheMassiveList</string>
     <string name="TestingText">This is a Massive ListView Sample</string>
     <string name="InputHint">Enter a number</string>
-    <string name="Version">5.0</string>
+    <string name="Version">5.1</string>
     <string name="cache_dirname">TheMassiveList/image_cache</string>
     <string name="ImageUrl">http://60.199.201.66/geticonlist.php</string>
 

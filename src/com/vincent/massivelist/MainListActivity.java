@@ -209,7 +209,7 @@ public class MainListActivity extends Activity
 					if (i == ranNumList.get(j))							//如果該次的 i 等於ranNumList其中一個數字的話...
 					{													//由於 i 是從 1 開始去run，所以一定是從ranNumList中最小的值開始抓到
 						sb = new StringBuilder();			
-						Log.i("ranNumberList",""+ranNumList.get(j));	//把該次比對到的值Log出來，從最小到最大...
+						//Log.i("ranNumberList",""+ranNumList.get(j));	//把該次比對到的值Log出來，從最小到最大...
 																		//所以在這裡也順便給 ranNumList 給做了排序...
 																		//意外發現 Bubble Sort 之外的另一個排序法阿！
 						for (int k = 0; k < ranMultiList.get(j); k++)
@@ -400,22 +400,22 @@ public class MainListActivity extends Activity
     										//與上面的 createImageBtn 都差不多阿~
     	int iconRes;
     	
-    	for (String[] icons: getSmileyIcons())		//根據 getSmileyIcons() 的size來run~
+    	for (String[] smileyName: getSmileyName())		//根據 getSmileyIcons() 的size來run~
     	{
-    		iconRes = Integer.parseInt(icons[1]);
+    		iconRes = Integer.parseInt(smileyName[1]);
     		ImageButton iconBtn = new ImageButton(this);
     		iconBtn.setImageResource(iconRes);
     		iconBtn.setScaleType(ScaleType.CENTER_CROP);
     		iconBtn.setLayoutParams(params);
-    		iconBtn.setTag(icons[0]);
+    		iconBtn.setTag(smileyName[0]);
     		iconBtn.setOnClickListener(btnClick);
     		smileyIconLayout.addView(iconBtn);
     	}
     }
-	private String withSlash(String text)		//一個將 String 的前後都加上 "/" 的小功能~
+	private String withSymbol(String text)		//一個將 String 的前後都加上指定符號的小功能~
 	{
 		sb = new StringBuilder();
-		sb.append("/").append(text).append("/");
+		sb.append("#").append(text).append("#");
 		return sb.toString();
 	}
 	
@@ -426,27 +426,27 @@ public class MainListActivity extends Activity
     	
     	String oriText = textInput.getText().toString();
     	int index = Math.max(textInput.getSelectionStart(), 0);
-    	Log.i("Text Index", "" + index);
+    	Log.i("EditText Index", "" + index);
     	
     	sb = new StringBuilder(oriText);
     	sb.insert(index, smileyText);
     	
-    	textInput.setText(parser.addSmileySpans(sb.toString()));
+    	textInput.setText(parser.addIconSpans(sb.toString()));
     	textInput.setSelection(index + smileyText.length());
     }
     
     public HashMap<String, Integer> getSmileyMap()		//要丟給 SmileysParser 吃，所以要產生 HashMap
     {
-    	HashMap<String, Integer> iconNameItem = new HashMap<String, Integer>();
+    	HashMap<String, Integer> iconNameItem = new HashMap<String, Integer>(getSmileyName().size());
     	
-    	for (String[] icons: getSmileyIcons())
+    	for (String[] icons: getSmileyName())
     	{
     		iconNameItem.put(icons[0], Integer.parseInt(icons[1]));
     	}
     	return iconNameItem;
     }
     
-    public List<String[]> getSmileyIcons()		//將 Resources 中的 Drawable 撈出來，並建立在 List<String[]> 中
+    public List<String[]> getSmileyName()		//將 Resources 中的 Drawable 撈出來，並建立在 List<String[]> 中
     {
     	List<String[]> smileyIconList = new ArrayList<String[]>();
     	String resStr;
@@ -461,8 +461,8 @@ public class MainListActivity extends Activity
     			if (f.getName().contains("smiley"))		//藉由判斷名稱，來篩選出我們要的 Drawable
     			{
     				resStr = String.valueOf(f.getInt(drawable));
-    				smileyIconList.add(createStringArr(withSlash(f.getName()), resStr));
-    			}						//將 Drawable 的資訊放到 smileyIconList 中，格式為：/(DrawableName)/[0]，(DrawableID)[1]
+    				smileyIconList.add(createStringArr(withSymbol(f.getName()), resStr));
+    			}						//將 Drawable 的資訊放到 smileyIconList 中，格式為：#(DrawableName)#[0]，(DrawableID)[1]
     		}
     		catch (IllegalArgumentException e) {
     			e.printStackTrace();
@@ -541,15 +541,11 @@ public class MainListActivity extends Activity
     public void showIconClick(View view)
     {
     	if (!iconShown)
-    	{
     		showIcons();
-    		iconShown = true;
-    	} else
-    	{
+    	else
     		hideIcons();
-    		iconShown = false;
-    	}
     }
+    
     private void showIcons()
     {
     	iconsLayout.setVisibility(View.VISIBLE);
@@ -557,12 +553,15 @@ public class MainListActivity extends Activity
     	showIconBtn.setImageResource(android.R.drawable.ic_menu_more);
     	createImageBtn();
     	createIconsBtn();
+    	iconShown = true;
     }
+    
     private void hideIcons()
     {
     	iconsLayout.setVisibility(View.GONE);
     	smileyIconLayout.setVisibility(View.GONE);
     	showIconBtn.setImageResource(android.R.drawable.ic_menu_add);
+    	iconShown = false;
     }
     
     public boolean onKeyDown(int keyCode, KeyEvent event)
@@ -570,10 +569,8 @@ public class MainListActivity extends Activity
 		if (keyCode == KeyEvent.KEYCODE_BACK || event.getAction() == KeyEvent.KEYCODE_BACK)
 		{
 			if (iconShown)
-			{
 				hideIcons();
-				iconShown = false;
-			} else
+			else
 				android.os.Process.killProcess(android.os.Process.myPid());
 			return true;
 		}
@@ -601,10 +598,9 @@ public class MainListActivity extends Activity
 			imageLoader.clearCache();
 			SmileysParser.init(this);
 			
-			if (iconShown) {
+			if (iconShown)
 				hideIcons();
-				iconShown = false;
-			}
+			
 			shortMessage("Image Cache Cleared");
 			break;
 		

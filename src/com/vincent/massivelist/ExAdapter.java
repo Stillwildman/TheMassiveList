@@ -66,7 +66,6 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		SmileysParser.init(context);
 		parser = SmileysParser.getInstance();
 		
-		//url_array = context.getResources().getStringArray(R.array.url_array);		//獲得本機資源裡的 url_array
 		this.url_array = urlList;
 		ranUrlNumList = new ArrayList<Integer>();
 		getRanArrNum();
@@ -104,7 +103,6 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		if (convertView == null)
 		{
-			//LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 			convertView = inflater.inflate(R.layout.ex_group, null);
 			
 			holder = new ViewHolder();
@@ -167,9 +165,9 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		}
 		String groupText = (String) listGroup.get(groupPosition).get("groupSample");
 		String groupNumber = (String) listGroup.get(groupPosition).get("groupNumber");
-		holder.text1.setText(parser.addSmileySpans(groupText));
 		
-		holder.text2.setText(parser.addSmileySpans(groupNumber));
+		holder.text1.setText(parser.addIconSpans(groupText));
+		holder.text2.setText(parser.addIconSpans(groupNumber));
 		
 		holder.text1.setTextColor(Color.BLACK);							//此處解釋請參照下面的convertView!
 		holder.text2.setTextColor(Color.BLACK);
