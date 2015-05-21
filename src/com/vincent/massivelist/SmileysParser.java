@@ -124,10 +124,11 @@ public class SmileysParser
 		if (!imgMapPattern.toString().equals("Image Files Empty!"))
 		{
 			Matcher imgMatcher = imgMapPattern.matcher(text);
-
+			
 			while (imgMatcher.find())
 			{
 				String imgFileName = imgMap.get(imgMatcher.group());
+				Log.d("ImageMatched!!!", imgFileName);
 
 				Drawable resDraw = Drawable.createFromPath(SDPath + "/" + cacheDir + "/" + imgFileName);
 				resDraw.setBounds(0, 0, 50, 50);
@@ -136,7 +137,8 @@ public class SmileysParser
 				ImageSpan imageSpan = new ImageSpan(resDraw, ImageSpan.ALIGN_BOTTOM); 
 				builder.setSpan(imageSpan, imgMatcher.start(), imgMatcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			}
-		} else if (textString.contains("/"))
+			
+		} else if (textString.contains("/") && !textString.contains("//"))
 		{
 			Log.i("EmptyPattern~~", textString + "\n" + textString.indexOf("/") + " " + textString.lastIndexOf("/"));
 			Drawable waitDraw = context.getResources().getDrawable(R.drawable.wait01);
@@ -147,12 +149,44 @@ public class SmileysParser
 		return builder;
 	}
 	
-	public CharSequence addImageSpans(CharSequence text)
+	public CharSequence addWaitSpans(CharSequence text, String extension)
 	{
 		SpannableStringBuilder builder = new SpannableStringBuilder(text);
+		String textString = text.toString();
+		
+		Drawable waitDraw = context.getResources().getDrawable(R.drawable.wait01);
+		waitDraw.setBounds(0, 0, 50, 50);
+		
+		ImageSpan imageSpan = new ImageSpan(waitDraw, ImageSpan.ALIGN_BOTTOM);
+		builder.setSpan(imageSpan, textString.indexOf("http://"),textString.lastIndexOf(extension)+4, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		
+		Log.d("FUCK SPANS!!!", textString);
 		
 		return builder;
 	}
+	/*
+		new Thread() {
+			public void run() {
+				imageBitmap = imageLoader.getBitmap(urlString);
+				//imgHandler.obtainMessage(0, images).sendToTarget();
+			}
+		}.start();
+	*/
+	/*
+	Handler imgHandler = new Handler()
+	{
+		@Override
+		public void handleMessage(Message msg)
+		{
+			switch (msg.what)
+			{
+			case 0:
+				
+				break;
+			}
+		}
+	};
+	*/
 	
 	/*
 	private static Bitmap drawableToBitmap(Drawable draw)

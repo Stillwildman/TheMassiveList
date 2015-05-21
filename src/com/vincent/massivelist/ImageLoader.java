@@ -18,6 +18,7 @@ import android.os.Handler;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.widget.ImageView;
 
 public class ImageLoader
@@ -34,7 +35,7 @@ public class ImageLoader
         executorService = Executors.newFixedThreadPool(5);
     }
     
-    //final int coffeeImage = R.drawable.coffee_icon;
+    final int tempImage = R.drawable.wait01;
     public void DisplayImage(String url, ImageView imageView)
     {
         imageViews.put(imageView, url);
@@ -45,7 +46,7 @@ public class ImageLoader
         else
         {
             queuePhoto(url, imageView);
-            //imageView.setImageResource(coffeeImage);
+            imageView.setImageResource(tempImage);
         }
     }
         
@@ -55,38 +56,41 @@ public class ImageLoader
         executorService.submit(new PhotosLoader(p));
     }
     
-    private Bitmap getBitmap(String url) 
+    public Bitmap getBitmap(String url) 
     {
         File f = fileCache.getFile(url);
         
         //from SD cache
         Bitmap b  =  decodeFile(f);
+        
         if(b != null)
             return b;
-        
-        //from web
-        try
-        {
-            Bitmap bitmap = null;
-            URL imageUrl  =  new URL(url);
-            HttpURLConnection conn  =  (HttpURLConnection)imageUrl.openConnection();
-            conn.setConnectTimeout(30000);
-            conn.setReadTimeout(30000);
-            conn.setInstanceFollowRedirects(true);
-            InputStream is = conn.getInputStream();
-            OutputStream os  =  new FileOutputStream(f);
-            Utils.CopyStream(is, os);
-            os.close();
-            conn.disconnect();
-            bitmap  =  decodeFile(f);
-            return bitmap;
-        }
-        catch (Throwable ex)
-        {
-           ex.printStackTrace();
-           if(ex instanceof OutOfMemoryError)
-               memoryCache.clear();
-           return null;
+        else {
+        	//from web
+        	try
+        	{
+        		Bitmap bitmap = null;
+        		URL imageUrl  =  new URL(url);
+        		HttpURLConnection conn  =  (HttpURLConnection)imageUrl.openConnection();
+        		conn.setConnectTimeout(30000);
+        		conn.setReadTimeout(30000);
+        		conn.setInstanceFollowRedirects(true);
+        		InputStream is = conn.getInputStream();
+        		OutputStream os  =  new FileOutputStream(f);
+        		Utils.CopyStream(is, os);
+        		os.close();
+        		conn.disconnect();
+        		bitmap  =  decodeFile(f);
+        		return bitmap;
+        	}
+        	catch (Throwable ex)
+        	{
+        		Log.d("getBitmap", ""+ex);
+        		ex.printStackTrace();
+        		if(ex instanceof OutOfMemoryError)
+        			memoryCache.clear();
+        		return null;
+        	}
         }
     }
 
@@ -99,7 +103,7 @@ public class ImageLoader
             BitmapFactory.Options bfOptions1  =  new BitmapFactory.Options();
             bfOptions1.inJustDecodeBounds  =  true;
             FileInputStream stream1 = new FileInputStream(f);
-            BitmapFactory.decodeStream(stream1,null,bfOptions1);
+            BitmapFactory.decodeStream(stream1, null, bfOptions1);
             stream1.close();
             
             //Find the correct scale value. It should be the power of 2.
@@ -196,7 +200,7 @@ public class ImageLoader
             if (bitmap != null)
                 photoToLoad.imageView.setImageBitmap(bitmap);
             else {}
-                //photoToLoad.imageView.setImageResource(coffeeImage);
+                photoToLoad.imageView.setImageResource(tempImage);
         }
     }
 

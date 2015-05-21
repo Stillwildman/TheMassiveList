@@ -159,6 +159,7 @@ public class MainListActivity extends Activity
 		@Override
 		protected Void doInBackground(String... params)
 		{
+			/*
 			GetStringByUrl urlString = new GetStringByUrl(getString(R.string.ImageUrl));	//從Testing server上取得Image URL的清單
 			String[] urlTempString = urlString.getString().split(",");		//URL清單中的每個檔名，是以","做區隔，所以在這裡將他分割為Array
 			StringBuilder urlSb;
@@ -171,6 +172,8 @@ public class MainListActivity extends Activity
 			}
 			urlTempString = new String[urlTempList.size()];		//將 ArrayList 轉為 String[]
 			urlList = urlTempList.toArray(urlTempString);
+			*/
+			urlList = getResources().getStringArray(R.array.url_array);
 			
 			count = Integer.parseInt(params[0]);
 			text = params[1];
@@ -202,7 +205,7 @@ public class MainListActivity extends Activity
 				Map<String, String> listGroupItem = new HashMap<String, String>();
 
 				listGroupItem.put("groupSample", text);		//正常put進固定的內容
-				listGroupItem.put("groupNumber", " "+i);
+				listGroupItem.put("groupNumber", ""+i);
 
 				for (int j = 0; j < ranCount; j++)						//從這裡開始run "ranCount" 次的迴圈
 				{
@@ -216,6 +219,8 @@ public class MainListActivity extends Activity
 						{
 							sb.append("This is the Chosen One! ");		//看該次的ranMultiList的值是多少，就run幾次
 						}
+						sb.insert(sb.length()/2, urlList[ran.nextInt(urlList.length)]);
+						
 						listGroupItem.put("groupSample", sb.toString());	//把該次的內容put進hashMap裡，覆蓋原本put的值
 					}
 				}
@@ -508,17 +513,20 @@ public class MainListActivity extends Activity
     		List<String[]> imageNameList = new ArrayList<String[]>();
 
     		String imgFullName;
-    		StringBuilder imgNameSb;
+    		//StringBuilder imgNameSb;
     		String imgName;
 
     		for (File img: imgCount)
     		{
     			imgFullName = img.getName();	//完整檔案名稱，包含副檔名
+    			/*
     			imgNameSb = new StringBuilder(imgFullName).insert(imgFullName.lastIndexOf("%2F")+3, "/")
     					.insert(imgFullName.lastIndexOf(".")+1, "/");	//修改Image的檔名~
     			imgName = imgNameSb.substring(imgNameSb.lastIndexOf("%2F")+3, imgNameSb.lastIndexOf("."))
     					.replace("%2B", "+");	//新的 image name，含 /../ 不含副檔名
-
+    			*/
+    			imgName = imgFullName.replace("%3A", ":").replace("%2F", "/").replace("%2B", "+");
+    			
     			Log.i("imgName", imgName);
     			Log.i("imgFullName", imgFullName);
 
@@ -597,7 +605,6 @@ public class MainListActivity extends Activity
 		case R.id.menu_clear:
 			imageLoader.clearCache();
 			SmileysParser.init(this);
-			
 			if (iconShown)
 				hideIcons();
 			

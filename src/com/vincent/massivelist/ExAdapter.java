@@ -1,15 +1,23 @@
 package com.vincent.massivelist;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.os.Message;
 import android.text.Html;
+import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.style.ImageSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,12 +42,17 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	private StringBuilder htmlSb;
 	
 	SmileysParser parser;
+	private SpannableStringBuilder ssBuilder;
+	private ImageSpan imageSpan;
 	
-	//private Bitmap Icon;
+	private Drawable waitIcon;
+	//private Bitmap imgBitmap;
+	private HashMap<Integer, Bitmap> bitHashMap;
 	
 	private String[] url_array;
 	private ArrayList<Integer> ranUrlNumList;
 	ImageLoader imageLoader;
+	FileCache fileCache;
 	//GetWebImg webImg;
 	
 	private List<String[]> iconName;
@@ -52,12 +65,14 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		this.context = context;
 		this.listGroup = listGroup;
 		this.listChild = listChild;
-		/*
-		Bitmap icon = BitmapFactory.decodeResource(context.getResources(), R.drawable.coffee_icon);
-		Icon = icon;
-		*/
+		
+		waitIcon = context.getResources().getDrawable(R.drawable.wait01);
+		waitIcon.setBounds(0, 0, 50, 50);
+		bitHashMap = new HashMap<Integer, Bitmap>();
+		
 		inflater = LayoutInflater.from(context);
 		imageLoader = new ImageLoader(context.getApplicationContext());
+		fileCache = new FileCache(context);
 		//webImg = new GetWebImg(context);
 		
 		ranCount = (int) (getGroupCount() * 0.5);
@@ -115,9 +130,12 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		} else
 			holder = (ViewHolder) convertView.getTag();
 		
+		String groupText = (String) listGroup.get(groupPosition).get("groupSample");
+		String groupNumber = (String) listGroup.get(groupPosition).get("groupNumber");
+		
 		try
 		{
-			imageLoader.DisplayImage(url_array[ranUrlNumList.get(groupPosition)], holder.image);
+			//imageLoader.DisplayImage(url_array[ranUrlNumList.get(groupPosition)], holder.image);
 
 			/*	//(The "GetWebImg" way, from PTT)
 				if (webImg.IsCache(url_array[ranUrlNumList.get(groupPosition)]) == false)
@@ -142,6 +160,42 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		} finally {
 			notifyDataSetChanged();
 		}
+		
+		
+		if (groupText.contains("http://"))
+		{
+			String imgUrl = getImgUrlString(groupText);
+			
+			if (!imgUrl.equals("Unkonw Image URL!"))
+			{
+				File imgFile = fileCache.getFile(imgUrl);
+				
+				if (imgFile.exists()) {
+					holder.text1.setText(parser.addIconSpans(groupText));
+					Log.i("ImageFileViewed", imgUrl.substring(imgUrl.lastIndexOf("/")));
+				}
+				else
+				{
+					holder.text1.setText(parser.addWaitSpans(groupText, imgUrl.substring(imgUrl.lastIndexOf("."))));
+					downloadBitmapWithPosition(groupPosition, imgUrl);
+					
+					while (!imgFile.exists())
+					{
+						if (imgFile.exists())
+						{
+							holder.text1.setText(parser.addIconSpans(groupText));
+							notifyDataSetChanged();
+							break;
+						}
+						Log.i("ImageFile", "Downloading " + imgUrl.substring(imgUrl.lastIndexOf("/")));
+					}
+					Log.i("ImageFile", "OH YEAH~~~~~~~~~~");
+				}
+			}
+		} else
+			holder.text1.setText(parser.addIconSpans(groupText));
+		
+		holder.text2.setText(groupNumber);
 
 		if (holder.image.getDrawable() != null)
 		{
@@ -163,11 +217,6 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			}
 			*/
 		}
-		String groupText = (String) listGroup.get(groupPosition).get("groupSample");
-		String groupNumber = (String) listGroup.get(groupPosition).get("groupNumber");
-		
-		holder.text1.setText(parser.addIconSpans(groupText));
-		holder.text2.setText(parser.addIconSpans(groupNumber));
 		
 		holder.text1.setTextColor(Color.BLACK);							//此處解釋請參照下面的convertView!
 		holder.text2.setTextColor(Color.BLACK);
@@ -351,4 +400,57 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			}
 		}
 	}
+	
+	private String getImgUrlString(String text)
+	{
+		if (text.contains(".png"))
+			return text.substring(text.indexOf("http://"), text.lastIndexOf(".png")+4);
+		if (text.contains(".jpg"))
+			return text.substring(text.indexOf("http://"), text.lastIndexOf(".jpg")+4);
+		if (text.contains(".gif"))
+			return text.substring(text.indexOf("http://"), text.lastIndexOf(".gif")+4);
+		if (text.contains(".bmp"))
+			return text.substring(text.indexOf("http://"), text.lastIndexOf(".bmp")+4);
+		return "Unknow Image URL!";
+	}
+	
+	public void downloadBitmapWithPosition(final int position, final String urlString)
+	{
+		try
+		{
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					Log.d("BitmapDownload", "Downloading~~~~");
+					Bitmap img = imageLoader.getBitmap(urlString);
+					
+					handler.sendMessage(handler.obtainMessage(0, null));
+					bitHashMap.put(position, img);
+				}
+			}).start();
+			//return imgBitmap;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			Log.e("urlMAP~~~~~", "Didn't get the Position!");
+			//return null;
+		}
+	}
+	
+	Handler handler = new Handler()
+	{
+		@Override
+		public void handleMessage(Message msg)
+		{
+			switch (msg.what)
+			{
+			case 0:
+				Log.d("BitmapDownload", "FINISH!!!");
+				SmileysParser.init(context);
+				parser = SmileysParser.getInstance();
+				notifyDataSetChanged();
+				break;
+			}
+		}
+	};
 }
