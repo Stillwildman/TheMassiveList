@@ -134,7 +134,7 @@ public class SmileysParser
 				String imgPathName = SDPath + "/" + cacheDir + "/" + imgFileName;
 				Log.d("ImageMatched!!!", imgFileName);
 				
-				Bitmap image = MainListActivity.getDecodedBitmap(imgPathName, 100, 100);
+				Bitmap image = MainListActivity.getDecodedBitmap(imgPathName, 90, 90);
 				//Drawable resDraw = Drawable.createFromPath(SDPath + "/" + cacheDir + "/" + imgFileName);
 				//resDraw.setBounds(0, 0, 50, 50);
 
