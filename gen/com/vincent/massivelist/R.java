@@ -36,27 +36,28 @@ public final class R {
     }
     public static final class id {
         public static final int Image1=0x7f090004;
-        public static final int Line1=0x7f09000b;
-        public static final int Line2=0x7f09000d;
+        public static final int Line1=0x7f09000c;
+        public static final int Line2=0x7f09000e;
         public static final int LinearLayout1=0x7f090008;
         public static final int childText1=0x7f090002;
         public static final int exGroupLayout=0x7f090003;
         public static final int groupText1=0x7f090006;
         public static final int groupText2=0x7f090007;
-        public static final int iconScrollView=0x7f09000f;
-        public static final int iconsLayout=0x7f09000e;
+        public static final int iconScrollView=0x7f090010;
+        public static final int iconsLayout=0x7f09000f;
+        public static final int loading=0x7f09000a;
         public static final int loadingBar=0x7f090000;
         public static final int loadingImage=0x7f090005;
         public static final int loadingText=0x7f090001;
-        public static final int memTip=0x7f09000a;
-        public static final int menu_clear=0x7f090014;
-        public static final int menu_test=0x7f090015;
+        public static final int memTip=0x7f09000b;
+        public static final int menu_clear=0x7f090015;
+        public static final int menu_test=0x7f090016;
         public static final int numberInput=0x7f090009;
-        public static final int sampleExList=0x7f09000c;
-        public static final int sendBtn=0x7f090013;
-        public static final int showIconBtn=0x7f090011;
-        public static final int smileysIconLayout=0x7f090010;
-        public static final int textInput=0x7f090012;
+        public static final int sampleExList=0x7f09000d;
+        public static final int sendBtn=0x7f090014;
+        public static final int showIconBtn=0x7f090012;
+        public static final int smileysIconLayout=0x7f090011;
+        public static final int textInput=0x7f090013;
     }
     public static final class layout {
         public static final int dialog_layout=0x7f030000;

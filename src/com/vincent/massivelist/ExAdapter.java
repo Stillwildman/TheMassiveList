@@ -2,22 +2,18 @@ package com.vincent.massivelist;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Html;
-import android.text.SpannableStringBuilder;
 import android.text.Spanned;
-import android.text.style.ImageSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,12 +38,8 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	private StringBuilder htmlSb;
 	
 	SmileysParser parser;
-	private SpannableStringBuilder ssBuilder;
-	private ImageSpan imageSpan;
-	
 	private Drawable waitIcon;
 	//private Bitmap imgBitmap;
-	private HashMap<Integer, Bitmap> bitHashMap;
 	
 	private String[] url_array;
 	private ArrayList<Integer> ranUrlNumList;
@@ -68,7 +60,6 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		waitIcon = context.getResources().getDrawable(R.drawable.wait01);
 		waitIcon.setBounds(0, 0, 50, 50);
-		bitHashMap = new HashMap<Integer, Bitmap>();
 		
 		inflater = LayoutInflater.from(context);
 		imageLoader = new ImageLoader(context.getApplicationContext());
@@ -161,7 +152,6 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			notifyDataSetChanged();
 		}
 		
-		
 		if (groupText.contains("http://"))
 		{
 			String imgUrl = getImgUrlString(groupText);
@@ -169,29 +159,29 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			if (!imgUrl.equals("Unkonw Image URL!"))
 			{
 				File imgFile = fileCache.getFile(imgUrl);
-				
+
 				if (imgFile.exists()) {
-					holder.text1.setText(parser.addIconSpans(groupText));
-					Log.i("ImageFileViewed", imgUrl.substring(imgUrl.lastIndexOf("/")));
-				}
-				else
-				{
-					holder.text1.setText(parser.addWaitSpans(groupText, imgUrl.substring(imgUrl.lastIndexOf("."))));
-					downloadBitmapWithPosition(groupPosition, imgUrl);
-					
-					while (!imgFile.exists())
-					{
-						if (imgFile.exists())
-						{
-							holder.text1.setText(parser.addIconSpans(groupText));
-							notifyDataSetChanged();
-							break;
-						}
-						Log.i("ImageFile", "Downloading " + imgUrl.substring(imgUrl.lastIndexOf("/")));
+					try {
+						holder.text1.setText(parser.addIconSpans(groupText));
+						Log.i("ExistsFileViewed", imgUrl.substring(imgUrl.lastIndexOf("/")));
+					} catch (Exception e) {
+						//Log.e("ImageFileFielded", e.getMessage().toString());
+						holder.text1.setText(parser.addWaitSpans(groupText, imgUrl.substring(imgUrl.lastIndexOf("."))));
+						((MainListActivity) context).shortMessage("Slow Down Please~~");
 					}
-					Log.i("ImageFile", "OH YEAH~~~~~~~~~~");
 				}
-			}
+				else {
+					try {
+						holder.text1.setText(parser.addWaitSpans(groupText, imgUrl.substring(imgUrl.lastIndexOf("."))));
+						downloadBitmapByUrl(imgUrl);
+						Log.i("ImageFile", "OH YEAH~~~~~~~~~~");
+					} catch (Exception e) {
+						e.printStackTrace();
+						Log.e("ImageFile", "NO!!!!! What happed~~~");
+					}
+				}
+			} else
+				((MainListActivity) context).shortMessage("Unknow URL!!");
 		} else
 			holder.text1.setText(parser.addIconSpans(groupText));
 		
@@ -414,29 +404,27 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		return "Unknow Image URL!";
 	}
 	
-	public void downloadBitmapWithPosition(final int position, final String urlString)
+	public void downloadBitmapByUrl(final String urlString)
 	{
 		try
 		{
+			((MainListActivity) context).LoadingShow();
 			new Thread(new Runnable() {
 				@Override
 				public void run() {
 					Log.d("BitmapDownload", "Downloading~~~~");
-					Bitmap img = imageLoader.getBitmap(urlString);
-					
-					handler.sendMessage(handler.obtainMessage(0, null));
-					bitHashMap.put(position, img);
+					imageLoader.getBitmap(urlString, false);
+					handler.obtainMessage(0, urlString).sendToTarget();
 				}
 			}).start();
-			//return imgBitmap;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 			Log.e("urlMAP~~~~~", "Didn't get the Position!");
-			//return null;
 		}
 	}
 	
+	@SuppressLint("HandlerLeak")
 	Handler handler = new Handler()
 	{
 		@Override
@@ -445,10 +433,18 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			switch (msg.what)
 			{
 			case 0:
-				Log.d("BitmapDownload", "FINISH!!!");
+				String urlString = null;
+				if (msg.obj instanceof String)
+					urlString = (String) msg.obj;
+				
+				Log.d("DownloadedURL!", urlString.substring(urlString.lastIndexOf("/")));
 				SmileysParser.init(context);
 				parser = SmileysParser.getInstance();
+				
+				((MainListActivity) context).LoadingHide();
+				//((MainListActivity) context).createImageBtn();
 				notifyDataSetChanged();
+				
 				break;
 			}
 		}

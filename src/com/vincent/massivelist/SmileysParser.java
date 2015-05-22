@@ -6,6 +6,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.Environment;
 import android.text.Spannable;
@@ -100,6 +102,7 @@ public class SmileysParser
 		return Pattern.compile("Image Files Empty!");
 	}
 
+	@SuppressWarnings("deprecation")
 	public CharSequence addIconSpans(CharSequence text)
 	{
 		SpannableStringBuilder builder = new SpannableStringBuilder(text);
@@ -128,13 +131,15 @@ public class SmileysParser
 			while (imgMatcher.find())
 			{
 				String imgFileName = imgMap.get(imgMatcher.group());
+				String imgPathName = SDPath + "/" + cacheDir + "/" + imgFileName;
 				Log.d("ImageMatched!!!", imgFileName);
-
-				Drawable resDraw = Drawable.createFromPath(SDPath + "/" + cacheDir + "/" + imgFileName);
-				resDraw.setBounds(0, 0, 50, 50);
+				
+				Bitmap image = MainListActivity.getDecodedBitmap(imgPathName, 100, 100);
+				//Drawable resDraw = Drawable.createFromPath(SDPath + "/" + cacheDir + "/" + imgFileName);
+				//resDraw.setBounds(0, 0, 50, 50);
 
 				//Bitmap bitImg = compressImage(drawableToBitmap(resDraw));
-				ImageSpan imageSpan = new ImageSpan(resDraw, ImageSpan.ALIGN_BOTTOM); 
+				ImageSpan imageSpan = new ImageSpan(image, ImageSpan.ALIGN_BOTTOM); 
 				builder.setSpan(imageSpan, imgMatcher.start(), imgMatcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 			}
 			
@@ -160,33 +165,10 @@ public class SmileysParser
 		ImageSpan imageSpan = new ImageSpan(waitDraw, ImageSpan.ALIGN_BOTTOM);
 		builder.setSpan(imageSpan, textString.indexOf("http://"),textString.lastIndexOf(extension)+4, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		
-		Log.d("FUCK SPANS!!!", textString);
+		Log.d("FUCK SPANS!!!", textString.substring(textString.indexOf("http://"), textString.lastIndexOf(extension)+4));
 		
 		return builder;
 	}
-	/*
-		new Thread() {
-			public void run() {
-				imageBitmap = imageLoader.getBitmap(urlString);
-				//imgHandler.obtainMessage(0, images).sendToTarget();
-			}
-		}.start();
-	*/
-	/*
-	Handler imgHandler = new Handler()
-	{
-		@Override
-		public void handleMessage(Message msg)
-		{
-			switch (msg.what)
-			{
-			case 0:
-				
-				break;
-			}
-		}
-	};
-	*/
 	
 	/*
 	private static Bitmap drawableToBitmap(Drawable draw)

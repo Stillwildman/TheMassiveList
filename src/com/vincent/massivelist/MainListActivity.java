@@ -15,7 +15,8 @@ import android.app.ActivityManager.MemoryInfo;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.res.Resources;
-import android.graphics.drawable.Drawable;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -40,6 +41,7 @@ import android.widget.ExpandableListView.OnGroupExpandListener;
 import android.widget.ImageButton;
 import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
@@ -67,6 +69,7 @@ public class MainListActivity extends Activity
 	private LinearLayout smileyIconLayout;
 	private ImageButton showIconBtn;
 	private boolean iconShown;
+	private ProgressBar loading;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -122,6 +125,8 @@ public class MainListActivity extends Activity
 		iconsLayout = (LinearLayout) findViewById(R.id.iconsLayout);
 		smileyIconLayout = (LinearLayout) findViewById(R.id.smileysIconLayout);
 		showIconBtn = (ImageButton) findViewById(R.id.showIconBtn);
+		
+		loading = (ProgressBar) findViewById(R.id.loading);
 	}
 	
 	class createAsyncList extends AsyncTask<String, Integer, Void>
@@ -341,7 +346,7 @@ public class MainListActivity extends Activity
     	LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(getPixels(40), getPixels(40), Gravity.CENTER);
     												//若直接輸入數字的話，單位會是Dip，因此要用 getPixels() 將單位轉換為Pixels，
     	iconsLayout.removeAllViews();				//在計算物件在螢幕中的空間關係，才會很準確阿~~
-    	Drawable iconDraw;
+    	Bitmap imgBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.wait01);
     	
     	String SDPath = Environment.getExternalStorageDirectory().getPath();
     	String cacheDir = getResources().getString(R.string.cache_dirname);
@@ -357,16 +362,20 @@ public class MainListActivity extends Activity
     	
     	for (String[] imgName: getImageName())		//根據 getImageName() 中獲得的size來run迴圈
     	{
-    		iconDraw = Drawable.createFromPath(imagePath + imgName[1]);
-    		
+    		try {
+    			imgBitmap = getDecodedBitmap(imagePath + imgName[1], 80, 80);
+    		}catch (Exception e) {
+    			Log.e("CreateBtnFailed!!", e.getMessage().toString());
+    			shortMessage("Buttons Create Failed!");
+    		}
     		ImageButton imgBtn = new ImageButton(this);
-    		imgBtn.setImageDrawable(iconDraw);
+    		imgBtn.setImageBitmap(imgBitmap);
     		imgBtn.setScaleType(ScaleType.CENTER_CROP);
     		imgBtn.setLayoutParams(params);
     		imgBtn.setTag(imgName[0]);			// setTag() 根本只有好用阿!!!
     		
     		btnWidthSum += imgBtn.getLayoutParams().width;	//藉由 .getLayoutParams().width 獲得 imgBtn 的寬度，然後加到 btnWidthSum 中！
-    		Log.i("BtnWidth!", imgBtn.getLayoutParams().width + " of " + btnWidthSum);
+    		//Log.i("BtnWidth!", imgBtn.getLayoutParams().width + " of " + btnWidthSum);
     		
     		if (isFirstCreate)				//由於並不是每圈都要加入 new Layout，所以要有判斷式阿~
     		{
@@ -585,6 +594,65 @@ public class MainListActivity extends Activity
 		return super.onKeyDown(keyCode, event);
 	}
     
+    public void LoadingShow()
+    {
+    	loading.setVisibility(View.VISIBLE);
+    }
+    
+    public void LoadingHide()
+    {
+    	loading.setVisibility(View.GONE);
+    }
+    
+    public static Bitmap getDecodedBitmap(String imgPath, int reqWidth, int reqHeight)
+	{
+		final BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inJustDecodeBounds = true;
+		BitmapFactory.decodeFile(imgPath, options);
+		options.inSampleSize = getInSampleSize(options, reqWidth, reqHeight);
+		
+		int imgWidth = options.outWidth;
+		int imgHeight = options.outHeight;
+		String imgType = options.outMimeType;
+		Log.i("ImageInfo~", imgType + " " + imgWidth + " x " + imgHeight);
+		
+		options.inJustDecodeBounds = false;
+		Bitmap imageInSampleSize = BitmapFactory.decodeFile(imgPath, options);
+		return createScaleBitmap(imageInSampleSize, reqWidth, reqHeight, options.inSampleSize);
+	}
+	
+	private static int getInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight)
+	{
+		final int width = options.outWidth;
+		final int height = options.outHeight;
+		int inSampleSize = 1;
+		
+		if (width > reqWidth || height > reqHeight)
+		{
+			final int halfWidth = width / 2;
+			final int halfHeight = height / 2;
+			
+			while ((halfWidth / inSampleSize) > reqWidth && (halfHeight / inSampleSize) > reqHeight)
+			{
+				inSampleSize *= 2;
+			}
+		}
+		return inSampleSize;
+	}
+	
+	private static Bitmap createScaleBitmap(Bitmap image, int dstWidth, int dstHeight, int inSampleSize)
+	{
+		Bitmap scaledImg = Bitmap.createScaledBitmap(image, dstWidth, dstHeight, false);
+		if (image != scaledImg) {
+			image.recycle();
+			return scaledImg;
+		} 
+		else {
+			scaledImg.recycle();
+			return image;
+		}
+	}
+    
 	public void shortMessage(String msg)
 	{
 		Toast.makeText(MainListActivity.this, msg, Toast.LENGTH_SHORT).show();
@@ -605,6 +673,7 @@ public class MainListActivity extends Activity
 		case R.id.menu_clear:
 			imageLoader.clearCache();
 			SmileysParser.init(this);
+			exList.invalidateViews();
 			if (iconShown)
 				hideIcons();
 			

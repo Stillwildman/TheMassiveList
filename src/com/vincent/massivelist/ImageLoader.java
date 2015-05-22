@@ -56,7 +56,7 @@ public class ImageLoader
         executorService.submit(new PhotosLoader(p));
     }
     
-    public Bitmap getBitmap(String url) 
+    public Bitmap getBitmap(String url, boolean needDecode) 
     {
         File f = fileCache.getFile(url);
         
@@ -69,6 +69,7 @@ public class ImageLoader
         	//from web
         	try
         	{
+        		Log.d("getBitmap", "Getitng Bitmap~~");
         		Bitmap bitmap = null;
         		URL imageUrl  =  new URL(url);
         		HttpURLConnection conn  =  (HttpURLConnection)imageUrl.openConnection();
@@ -80,12 +81,16 @@ public class ImageLoader
         		Utils.CopyStream(is, os);
         		os.close();
         		conn.disconnect();
-        		bitmap  =  decodeFile(f);
-        		return bitmap;
+        		
+        		if (needDecode) {
+        			bitmap  =  decodeFile(f);
+        			return bitmap;
+        		} else
+        			return null;
         	}
         	catch (Throwable ex)
         	{
-        		Log.d("getBitmap", ""+ex);
+        		Log.e("getBitmapFiled", ""+ex);
         		ex.printStackTrace();
         		if(ex instanceof OutOfMemoryError)
         			memoryCache.clear();
@@ -99,6 +104,7 @@ public class ImageLoader
     {
         try
         {
+        	Log.d("DecodeFile", "Decoding Bitmap~~");
             //decode image size
             BitmapFactory.Options bfOptions1  =  new BitmapFactory.Options();
             bfOptions1.inJustDecodeBounds  =  true;
@@ -125,6 +131,7 @@ public class ImageLoader
             FileInputStream stream2 = new FileInputStream(f);
             Bitmap bitmap = BitmapFactory.decodeStream(stream2, null, bfOptions2);
             stream2.close();
+            Log.d("DecodeFile", "Decoding DONE!!");
             return bitmap;
         }
         catch (FileNotFoundException e) {
@@ -164,7 +171,7 @@ public class ImageLoader
                 if (imageViewReused(photoToLoad))
                     return;
                 
-                Bitmap bmp = getBitmap(photoToLoad.url);
+                Bitmap bmp = getBitmap(photoToLoad.url, true);
                 memoryCache.put(photoToLoad.url, bmp);
                 
                 if (imageViewReused(photoToLoad))
