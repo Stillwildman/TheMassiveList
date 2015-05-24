@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.StringTokenizer;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -152,7 +153,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			notifyDataSetChanged();
 		}
 		
-		if (groupText.contains("http://"))
+		if (groupText.contains("http://") || groupText.contains("https://"))
 		{
 			String imgUrl = getImgUrlString(groupText);
 			
@@ -167,7 +168,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 					} catch (Exception e) {
 						//Log.e("ImageFileFielded", e.getMessage().toString());
 						holder.text1.setText(parser.addWaitSpans(groupText, imgUrl.substring(imgUrl.lastIndexOf("."))));
-						((MainListActivity) context).shortMessage("Slow Down Please~~");
+						((MainListActivity) context).shortMessage("Slow Down Please!");
 					}
 				}
 				else {
@@ -393,14 +394,16 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	
 	private String getImgUrlString(String text)
 	{
+		
+		
 		if (text.contains(".png"))
-			return text.substring(text.indexOf("http://"), text.lastIndexOf(".png")+4);
+			return text.substring(text.indexOf("http"), text.lastIndexOf(".png")+4);
 		if (text.contains(".jpg"))
-			return text.substring(text.indexOf("http://"), text.lastIndexOf(".jpg")+4);
+			return text.substring(text.indexOf("http"), text.lastIndexOf(".jpg")+4);
 		if (text.contains(".gif"))
-			return text.substring(text.indexOf("http://"), text.lastIndexOf(".gif")+4);
+			return text.substring(text.indexOf("http"), text.lastIndexOf(".gif")+4);
 		if (text.contains(".bmp"))
-			return text.substring(text.indexOf("http://"), text.lastIndexOf(".bmp")+4);
+			return text.substring(text.indexOf("http"), text.lastIndexOf(".bmp")+4);
 		return "Unknow Image URL!";
 	}
 	

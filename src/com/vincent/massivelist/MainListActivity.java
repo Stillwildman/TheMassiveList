@@ -433,7 +433,7 @@ public class MainListActivity extends Activity
 		return sb.toString();
 	}
 	
-    public void setSmileyText(String smileyText)
+    private void setSmileyText(String smileyText)
     {
     	SmileysParser.init(this);							//每次 setSmileyText 的時候，都讓 SmileysParser 重新 init 一次，
     	SmileysParser parser = SmileysParser.getInstance();	//以用來更新存放images檔名的 HashMap

@@ -7,7 +7,6 @@ import java.util.regex.Pattern;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.Environment;
 import android.text.Spannable;
@@ -163,9 +162,9 @@ public class SmileysParser
 		waitDraw.setBounds(0, 0, 50, 50);
 		
 		ImageSpan imageSpan = new ImageSpan(waitDraw, ImageSpan.ALIGN_BOTTOM);
-		builder.setSpan(imageSpan, textString.indexOf("http://"),textString.lastIndexOf(extension)+4, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		builder.setSpan(imageSpan, textString.indexOf("http"),textString.indexOf(extension)+4, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 		
-		Log.d("FUCK SPANS!!!", textString.substring(textString.indexOf("http://"), textString.lastIndexOf(extension)+4));
+		Log.d("FUCK SPANS!!!", textString.substring(textString.indexOf("http"), textString.indexOf(extension)+4));
 		
 		return builder;
 	}
