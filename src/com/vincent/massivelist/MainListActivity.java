@@ -157,7 +157,6 @@ public class MainListActivity extends Activity
     		Window dialogWindow = dialog.getWindow();
     		WindowManager.LayoutParams windowParams = dialogWindow.getAttributes();
     		windowParams.alpha = 0.9f;
-    		
     		dialog.show();
 		}
 		
@@ -403,7 +402,7 @@ public class MainListActivity extends Activity
     OnClickListener btnClick = new OnClickListener()
     {
     	public void onClick(View v) {
-    		setSmileyText(v.getTag().toString());
+    		setIconText(v.getTag().toString());
     	}
     };
 	
@@ -433,7 +432,7 @@ public class MainListActivity extends Activity
 		return sb.toString();
 	}
 	
-    private void setSmileyText(String smileyText)
+    private void setIconText(String iconText)
     {
     	SmileysParser.init(this);							//每次 setSmileyText 的時候，都讓 SmileysParser 重新 init 一次，
     	SmileysParser parser = SmileysParser.getInstance();	//以用來更新存放images檔名的 HashMap
@@ -443,10 +442,16 @@ public class MainListActivity extends Activity
     	Log.i("EditText Index", "" + index);
     	
     	sb = new StringBuilder(oriText);
-    	sb.insert(index, smileyText);
+    	sb.insert(index, iconText);
     	
-    	textInput.setText(parser.addIconSpans(sb.toString()));
-    	textInput.setSelection(index + smileyText.length());
+    	HashMap<String, Bitmap> imgMap = exAdapter.getNewImageMap();			//從 exAdapter 中抓出新版的 ImageMap
+    	if (iconText.contains("http://") || iconText.contains("https://"))
+    	{
+    		//String imgPathName = getImagePathByName(iconText);
+    		textInput.setText(parser.addIconSpans(sb.toString(), imgMap));
+    	} else
+    		textInput.setText(parser.addIconSpans(sb.toString(), imgMap));
+    	textInput.setSelection(index + iconText.length());
     }
     
     public HashMap<String, Integer> getSmileyMap()		//要丟給 SmileysParser 吃，所以要產生 HashMap
@@ -587,8 +592,9 @@ public class MainListActivity extends Activity
 		{
 			if (iconShown)
 				hideIcons();
-			else
+			else {
 				android.os.Process.killProcess(android.os.Process.myPid());
+			}
 			return true;
 		}
 		return super.onKeyDown(keyCode, event);
@@ -646,10 +652,28 @@ public class MainListActivity extends Activity
 		if (image != scaledImg) {
 			image.recycle();
 			return scaledImg;
-		} 
+		}
 		else {
 			scaledImg.recycle();
 			return image;
+		}
+	}
+	
+	public String getImagePathByName(String name)				//將一段正常的URL丟進來，以獲取該Image檔案的完整路徑
+	{
+		String SDPath = Environment.getExternalStorageDirectory().getPath();
+		String cacheDir = getResources().getString(R.string.cache_dirname);
+		String imgPathName;
+		
+		HashMap<String, String> imageMap = getImageMap();		//呼叫 getImageMap()
+		
+		if (imageMap.containsKey(name)) {						//如果 imageMap 裡有丟進來的那段URL的話..
+			imgPathName = SDPath + "/" + cacheDir + "/" + imageMap.get(name);	// URL即為 imageMap 的 key，藉由URL獲得完整的檔名！
+			return imgPathName;
+		}
+		else {
+			shortMessage("Can't Find Image Name in HashMap!");	//有時後會出現這個，表示下載還沒完成，HashMap的 key & value 還沒建立起來...
+			return null;										//但 URL 就已經先丟過來了，所以當然找不到啦~~	
 		}
 	}
     

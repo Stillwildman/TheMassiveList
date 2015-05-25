@@ -1,15 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <resources>
-    
-	    <array name="smileys_array">
-	    		<item>/happy</item>                
-                <item>/love</item>
-                <item>/cool</item>        
-                <item>/wink</item>                        
-                <item>/sad</item>                
-                <item>/dead</item>
-	    </array>
 	    
 	    <array name="url_array">
 	        <item>http://chat.sclub.cc/images/share_icon_blogger.png</item>
