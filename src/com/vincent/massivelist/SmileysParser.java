@@ -1,5 +1,6 @@
 package com.vincent.massivelist;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -30,9 +31,10 @@ public class SmileysParser
 	private final List<String[]> smileyName;
 	private final Pattern smileyMapPattern;
 	
-	private final HashMap<String, String> imgMap;
 	private final List<String[]> imageNames;
 	private final Pattern imgMapPattern;
+	
+	private final List<String> urlArr;
 	
 	private SmileysParser(Context context)
 	{
@@ -41,9 +43,10 @@ public class SmileysParser
 		this.smileyName = getSmileyName();
 		this.smileyMapPattern = buildPattern();
 		
-		this.imgMap = buildImgMap();
 		this.imageNames = getImgNames();
 		this.imgMapPattern = imgMapPattern();
+		
+		this.urlArr = new ArrayList<String>();
 	}
 
 	private HashMap<String, Integer> buildSmileyMap()
@@ -54,11 +57,6 @@ public class SmileysParser
 	private List<String[]> getSmileyName()
 	{
 		return ((MainListActivity) context).getSmileyName();
-	}
-	
-	private HashMap<String, String> buildImgMap()
-	{
-		return ((MainListActivity) context).getImageMap();
 	}
 	
 	private List<String[]> getImgNames()
@@ -132,20 +130,39 @@ public class SmileysParser
 		return builder;
 	}
 	
-	public CharSequence addWaitSpans(CharSequence text, String extension)
+	public CharSequence addWaitSpans(CharSequence text, String url)
 	{
 		SpannableStringBuilder builder = new SpannableStringBuilder(text);
-		String textString = text.toString();
+		
+		Matcher waitMatcher = waitPattern(url).matcher(text);
 		
 		Drawable waitDraw = context.getResources().getDrawable(R.drawable.wait01);
 		waitDraw.setBounds(0, 0, 50, 50);
 		
-		ImageSpan imageSpan = new ImageSpan(waitDraw, ImageSpan.ALIGN_BOTTOM);
-		builder.setSpan(imageSpan, textString.indexOf("http"),textString.indexOf(extension)+4, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-		
-		Log.d("FUCK SPANS!!!", textString.substring(textString.indexOf("http"), textString.indexOf(extension)+4));
-		
+		while (waitMatcher.find())
+		{
+			ImageSpan imageSpan = new ImageSpan(waitDraw, ImageSpan.ALIGN_BOTTOM);
+			builder.setSpan(imageSpan, waitMatcher.start(), waitMatcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+		}
+		Log.d("FUCK SPANS!!!", url);
 		return builder;
+	}
+	
+	private Pattern waitPattern(String url)
+	{
+		urlArr.add(url);
+		
+		StringBuilder patternString = new StringBuilder(urlArr.size() * 3);
+		patternString.append('(');
+
+		for (String urlString : urlArr)
+		{
+			patternString.append(Pattern.quote(urlString));
+			patternString.append('|');
+		}
+		patternString.replace(patternString.length() - 1, patternString.length(), ")");
+
+		return Pattern.compile(patternString.toString());
 	}
 	
 	/*

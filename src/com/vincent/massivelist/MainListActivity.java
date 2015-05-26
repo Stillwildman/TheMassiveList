@@ -70,6 +70,7 @@ public class MainListActivity extends Activity
 	private ImageButton showIconBtn;
 	private boolean iconShown;
 	private ProgressBar loading;
+	private HashMap<String, Bitmap> setIconMap;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -127,6 +128,7 @@ public class MainListActivity extends Activity
 		showIconBtn = (ImageButton) findViewById(R.id.showIconBtn);
 		
 		loading = (ProgressBar) findViewById(R.id.loading);
+		setIconMap = new HashMap<String, Bitmap>();
 	}
 	
 	class createAsyncList extends AsyncTask<String, Integer, Void>
@@ -444,13 +446,13 @@ public class MainListActivity extends Activity
     	sb = new StringBuilder(oriText);
     	sb.insert(index, iconText);
     	
-    	HashMap<String, Bitmap> imgMap = exAdapter.getNewImageMap();			//從 exAdapter 中抓出新版的 ImageMap
     	if (iconText.contains("http://") || iconText.contains("https://"))
     	{
-    		//String imgPathName = getImagePathByName(iconText);
-    		textInput.setText(parser.addIconSpans(sb.toString(), imgMap));
+    		String imgPathName = getImagePathByName(iconText);
+    		setIconMap.put(iconText, getDecodedBitmap(imgPathName, 80, 80));
+    		textInput.setText(parser.addIconSpans(sb.toString(), setIconMap));
     	} else
-    		textInput.setText(parser.addIconSpans(sb.toString(), imgMap));
+    		textInput.setText(parser.addIconSpans(sb.toString(), setIconMap));
     	textInput.setSelection(index + iconText.length());
     }
     

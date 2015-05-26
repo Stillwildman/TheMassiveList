@@ -177,7 +177,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 					}
 					else {
 						try {
-							holder.text1.setText(parser.addWaitSpans(groupText, imgUrl.substring(imgUrl.lastIndexOf("."))));
+							holder.text1.setText(parser.addWaitSpans(groupText, imgUrl));
 							downloadBitmapByUrl(imgUrl);
 							Log.i("ImageFile", "OH YEAH~~~~~~~~~~");
 						} catch (Exception e) {
@@ -400,34 +400,35 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	private List<String> getImgUrlString(String text)	//將groupText丟過來，藉由關鍵字和各種迴圈來把其中的 URLs 建立到 List<String> 裡
 	{
 		String[] urlArr = text.split("http");
+		String url;
 		List<String> urlList = new ArrayList<String>();
 		
 		for (int i = 1; i < urlArr.length; i++)
 		{
-			if (text.contains(".png"))
+			if (urlArr[i].contains(".png"))
 			{
-				String url = urlArr[i].substring(0, urlArr[i].lastIndexOf(".png")+4);
+				url = urlArr[i].substring(0, urlArr[i].lastIndexOf(".png")+4);
 				urlSb = new StringBuilder(url);
 				urlSb.insert(0, "http");
 				urlList.add(urlSb.toString());
 			}
-			else if (text.contains(".jpg"))
+			else if (urlArr[i].contains(".jpg"))
 			{
-				String url = urlArr[i].substring(0, urlArr[i].lastIndexOf(".jpg")+4);
+				url = urlArr[i].substring(0, urlArr[i].lastIndexOf(".jpg")+4);
 				urlSb = new StringBuilder(url);
 				urlSb.insert(0, "http");
 				urlList.add(urlSb.toString());
 			}
-			else if (text.contains(".gif"))
+			else if (urlArr[i].contains(".gif"))
 			{
-				String url = urlArr[i].substring(0, urlArr[i].lastIndexOf(".gif")+4);
+				url = urlArr[i].substring(0, urlArr[i].lastIndexOf(".gif")+4);
 				urlSb = new StringBuilder(url);
 				urlSb.insert(0, "http");
 				urlList.add(urlSb.toString());
 			}
-			else if (text.contains(".bmp"))
+			else if (urlArr[i].contains(".bmp"))
 			{
-				String url = urlArr[i].substring(0, urlArr[i].lastIndexOf(".bmp")+4);
+				url = urlArr[i].substring(0, urlArr[i].lastIndexOf(".bmp")+4);
 				urlSb = new StringBuilder(url);
 				urlSb.insert(0, "http");
 				urlList.add(urlSb.toString());
@@ -447,8 +448,8 @@ public class ExAdapter extends BaseExpandableListAdapter {
 				@Override
 				public void run() {
 					Log.d("BitmapDownload", "Downloading~~~~");
-					imageLoader.getBitmap(urlString, false);	//偷用 ImageLoader 裡 getBitmap 的方法，設為false表示不用他的decodeFile()
-					handler.obtainMessage(0, urlString).sendToTarget();	//下載完後將 URL 送去給 handler 玩~ 
+					imageLoader.getBitmap(urlString, false);	//偷用 ImageLoader 裡的 getBitmap 方法，設為false表示不用他的decodeFile()
+					handler.obtainMessage(0, urlString).sendToTarget();	//下載完後將 URL 送去給 handler 玩~
 				}
 			}).start();
 		}
@@ -473,11 +474,12 @@ public class ExAdapter extends BaseExpandableListAdapter {
 				
 				Log.d("DownloadedURL!", urlString.substring(urlString.lastIndexOf("/")));
 				
-				String imgPathName = ((MainListActivity) context).getImagePathByName(urlString);
+				String imgPathName = ((MainListActivity) context).getImagePathByName(urlString);	//藉由URL獲得完整的ImagePathName
 				try {
 					Bitmap imgBitmap = MainListActivity.getDecodedBitmap(imgPathName, 80, 80);
 					imgMap.put(urlString, imgBitmap);		//將下載好並Decode完後的Bitmap放入新版的 ImageMap 中！(key即為URL~)
-				} catch(Exception e) {
+				}
+				catch(Exception e) {
 					Log.e("ImageBitmap", "OH!!!!!NO~~~~~~~~~");			//如果滑太快，上面的 getDecodedBitmap() 中的工作還來不及完成...
 					((MainListActivity)context).shortMessage("OH!!!!! NO~~~~~");	//然後你又 View 到那一段的話...那就 OH!!! NO~~ 了阿
 				}
@@ -490,9 +492,4 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			}
 		}
 	};
-	
-	public HashMap<String, Bitmap> getNewImageMap()	//這裡是給 setIconText() 用的
-	{
-		return imgMap;
-	}
 }
