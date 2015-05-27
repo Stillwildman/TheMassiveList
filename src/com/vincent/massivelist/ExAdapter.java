@@ -10,18 +10,25 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Html;
+import android.text.Layout;
+import android.text.Spannable;
 import android.text.Spanned;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.util.Linkify;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -39,14 +46,12 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	private StringBuilder htmlSb;
 	
 	SmileysParser parser;
-	private Drawable waitIcon;
 	private HashMap<String, Bitmap> imgMap;
 	private StringBuilder urlSb;
 	
 	private String[] url_array;
 	private ArrayList<Integer> ranUrlNumList;
 	ImageLoader imageLoader;
-	FileCache fileCache;
 	//GetWebImg webImg;
 	
 	private List<String[]> iconName;
@@ -60,12 +65,8 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		this.listGroup = listGroup;
 		this.listChild = listChild;
 		
-		waitIcon = context.getResources().getDrawable(R.drawable.wait01);
-		waitIcon.setBounds(0, 0, 50, 50);
-		
 		inflater = LayoutInflater.from(context);
 		imageLoader = new ImageLoader(context.getApplicationContext());
-		fileCache = new FileCache(context);
 		//webImg = new GetWebImg(context);
 		imgMap = new HashMap<String, Bitmap>();
 		
@@ -117,8 +118,8 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			holder = new ViewHolder();
 			holder.text1 = (TextView) convertView.findViewById(R.id.groupText1);
 			holder.text2 = (TextView) convertView.findViewById(R.id.groupText2);
+			holder.toText = (TextView) convertView.findViewById(R.id.toText);
 			holder.image = (ImageView) convertView.findViewById(R.id.Image1);
-			holder.loadingImage = (ProgressBar) convertView.findViewById(R.id.loadingImage);
 			
 			convertView.setTag(holder);
 		} else
@@ -129,8 +130,13 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		try
 		{
-			//imageLoader.DisplayImage(url_array[ranUrlNumList.get(groupPosition)], holder.image);
-
+			imageLoader.DisplayImage(url_array[ranUrlNumList.get(groupPosition)], holder.image);
+			RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams
+					(MainListActivity.getPixels(35), MainListActivity.getPixels(35));
+			params.setMargins(10, 10, 5, 0);
+			holder.image.setPadding(5, 5, 5, 5);
+			holder.image.setLayoutParams(params);
+			
 			/*	//(The "GetWebImg" way, from PTT)
 				if (webImg.IsCache(url_array[ranUrlNumList.get(groupPosition)]) == false)
 					webImg.LoadUrlPic(url_array[ranUrlNumList.get(groupPosition)], handler);
@@ -141,13 +147,10 @@ public class ExAdapter extends BaseExpandableListAdapter {
 					holder.image.setVisibility(View.VISIBLE);
 				} else {}
 			 */
-			//holder.image.setImageBitmap(Icon);
 		}
 		catch (OutOfMemoryError e) {
 			e.printStackTrace();
-			//Icon.recycle();
 			Log.e("OOM Oops!", e.getMessage().toString());
-			Log.e("Memory","Out!");
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.e("Oops!", e.getMessage().toString());
@@ -161,7 +164,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			
 			for (String imgUrl: imgUrlList)
 			{
-				if (!imgUrl.equals("Unkonw Image URL!"))
+				if (!imgUrl.equals("Unknow Image URL!"))
 				{
 					Log.d("GetImageURL!!", imgUrl);
 					
@@ -185,34 +188,34 @@ public class ExAdapter extends BaseExpandableListAdapter {
 							Log.e("ImageFile", "NO!!!!! What happed~~~");
 						}
 					}
-				} else
-					((MainListActivity) context).shortMessage("Unknow URL!!");
+				} else {
+					holder.text1.setText(parser.addIconSpans(groupText, imgMap));
+					Log.i("Input URL", "Unknow URL!!!!!!");
+					//((MainListActivity) context).shortMessage("Unknow URL!!");
+				}
 			}
 		} else
 			holder.text1.setText(parser.addIconSpans(groupText, null));
 		
 		holder.text2.setText(groupNumber);
+		
+		holder.image.setFocusable(false);
+		holder.image.setFocusableInTouchMode(false);
+		holder.image.setClickable(true);
+		
+		holder.text1.setFocusable(false);
+		holder.text1.setFocusableInTouchMode(false);
+		//holder.text1.setClickable(true);
+		Linkify.addLinks(holder.text1, Linkify.ALL);
+		holder.text1.setMovementMethod(LinkMovementMethod.getInstance());
+		holder.text1.setOnTouchListener(textTouch);
+		
+		holder.text2.setFocusable(false);
+		holder.text2.setFocusableInTouchMode(false);
+		holder.text2.setClickable(true);
+		holder.text2.setTag(holder.text2.getText());
+		holder.text2.setOnClickListener(userClick);
 
-		if (holder.image.getDrawable() != null)
-		{
-			holder.loadingImage.setVisibility(View.GONE);
-			holder.image.setVisibility(View.VISIBLE);
-			/*												//這一段，是用來產生隨機數量的image在 isDivisible 2 的地方
-			holder.exGroupLinear.removeAllViews();
-			if (isDivisible(groupPosition, 2))
-			{
-				int ranNum = ran.nextInt(9)+2;
-				for (int i = 0; i < ranNum; i++)
-				{
-					ImageView iv = new ImageView(context);
-					imageLoader.DisplayImage(url_array[ran.nextInt(url_array.length)], iv);
-					LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
-							(LayoutParams.MATCH_PARENT, 50, Gravity.CENTER);
-					holder.exGroupLinear.addView(iv, params);
-				}
-			}
-			*/
-		}
 		
 		holder.text1.setTextColor(Color.BLACK);							//此處解釋請參照下面的convertView!
 		holder.text2.setTextColor(Color.BLACK);
@@ -304,8 +307,8 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	{
 		TextView text1;
 		TextView text2;
+		TextView toText;
 		ImageView image;
-		ProgressBar loadingImage;
 	}
 	
 	private boolean isDivisible(int position, int target)		//用於判斷指定的 position 是否為 target 的倍數~(ˋ_>ˊ)
@@ -476,12 +479,12 @@ public class ExAdapter extends BaseExpandableListAdapter {
 				
 				String imgPathName = ((MainListActivity) context).getImagePathByName(urlString);	//藉由URL獲得完整的ImagePathName
 				try {
-					Bitmap imgBitmap = MainListActivity.getDecodedBitmap(imgPathName, 80, 80);
+					Bitmap imgBitmap = MainListActivity.getDecodedBitmap(imgPathName, 100, 100);
 					imgMap.put(urlString, imgBitmap);		//將下載好並Decode完後的Bitmap放入新版的 ImageMap 中！(key即為URL~)
 				}
 				catch(Exception e) {
 					Log.e("ImageBitmap", "OH!!!!!NO~~~~~~~~~");			//如果滑太快，上面的 getDecodedBitmap() 中的工作還來不及完成...
-					((MainListActivity)context).shortMessage("OH!!!!! NO~~~~~");	//然後你又 View 到那一段的話...那就 OH!!! NO~~ 了阿
+					((MainListActivity)context).shortMessage("OH!!!!! NO~~~~~");	//然後你又 View 到那一段的話...那就 OH NO 了阿
 				}
 				((MainListActivity) context).LoadingHide();
 				SmileysParser.init(context);
@@ -490,6 +493,53 @@ public class ExAdapter extends BaseExpandableListAdapter {
 				notifyDataSetChanged();
 				break;
 			}
+		}
+	};
+	
+	OnClickListener userClick = new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			String text = (String) v.getTag();
+			EditText inputText = (EditText) ((MainListActivity)context).findViewById(R.id.textInput);
+			inputText.setText(text);
+			inputText.setSelection(text.length());
+		}
+	};
+	
+	OnTouchListener textTouch = new OnTouchListener() {
+		@Override
+		public boolean onTouch(View v, MotionEvent event) {
+			boolean ret = false;
+			CharSequence text = ((TextView) v).getText();
+			Spannable spanText = Spannable.Factory.getInstance().newSpannable(text);
+			TextView widget = (TextView) v;
+			int action = event.getAction();
+			
+			if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_DOWN)
+			{
+				int x = (int) event.getX();
+				int y = (int) event.getY();
+				
+				x -= widget.getTotalPaddingLeft();
+				y -= widget.getTotalPaddingTop();
+				
+				x += widget.getScrollX();
+				x += widget.getScrollY();
+				
+				Layout layout = widget.getLayout();
+				int line = layout.getLineForVertical(y);
+				int off = layout.getOffsetForHorizontal(line, x);
+				
+				ClickableSpan[] link = spanText.getSpans(off, off, ClickableSpan.class);
+				
+				if (link.length != 0) {
+					if (action == MotionEvent.ACTION_UP) {
+						link[0].onClick(widget);
+					}
+					ret = true;
+				}
+			}
+			return ret;
 		}
 	};
 }

@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import android.os.Environment;
 import android.os.Handler;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -29,10 +31,13 @@ public class ImageLoader
     ExecutorService executorService;
     Handler handler = new Handler();	//handler to display images in UI thread
     
+    String imgCachePath;
+    
     public ImageLoader(Context context)
     {
         fileCache  =  new FileCache(context);
         executorService = Executors.newFixedThreadPool(5);
+        imgCachePath = Environment.getExternalStorageDirectory().getPath() + "/" + context.getString(R.string.cache_dirname) + "/"; 
     }
     
     final int tempImage = R.drawable.wait01;
@@ -83,7 +88,9 @@ public class ImageLoader
         		conn.disconnect();
         		
         		if (needDecode) {
-        			bitmap  =  decodeFile(f);
+        			String imgFileName = imgCachePath + f.getName();
+        			bitmap  =  MainListActivity.getDecodedBitmap(imgFileName, 50, 50);
+        			//bitmap = decodeFile(f);
         			return bitmap;
         		} else
         			return null;
@@ -199,7 +206,7 @@ public class ImageLoader
     {
         Bitmap bitmap;
         PhotoToLoad photoToLoad;
-        public BitmapDisplayer(Bitmap b, PhotoToLoad p) {bitmap = b;photoToLoad = p;}
+        public BitmapDisplayer(Bitmap b, PhotoToLoad p) {bitmap = b; photoToLoad = p;}
         public void run()
         {
             if (imageViewReused(photoToLoad))

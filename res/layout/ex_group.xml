@@ -2,36 +2,31 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/exGroupLayout"
     android:layout_width="match_parent"
-    android:layout_height="fill_parent" >
+    android:layout_height="wrap_content" >
 
     <ImageView
         android:id="@+id/Image1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_marginBottom="10dp"
-        android:layout_marginTop="10dp"
-        android:scaleType="center"
-        android:visibility="gone" />
+        android:background="@drawable/image_button_style"
+        android:scaleType="centerCrop" />
 
-    <ProgressBar
-        android:id="@+id/loadingImage"
+    <TextView
+        android:id="@+id/toText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="true"
-        android:layout_marginBottom="10dp"
-        android:layout_marginTop="10dp"
-        android:visibility="gone" />
+        android:layout_marginTop="5dp"
+        android:layout_toRightOf="@+id/groupText2"
+        android:text=": "
+        android:textSize="18sp" />
 
     <TextView
         android:id="@+id/groupText1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerVertical="false"
+        android:layout_below="@+id/groupText2"
         android:layout_marginBottom="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="5dp"
-        android:layout_toLeftOf="@+id/groupText2"
+        android:layout_marginLeft="15dp"
         android:layout_toRightOf="@+id/Image1"
         android:textSize="15sp" />
 
@@ -39,10 +34,11 @@
         android:id="@+id/groupText2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/groupText1"
-        android:layout_marginRight="10dp"
-        android:textSize="22sp" />
+        android:layout_marginTop="5dp"
+        android:layout_toRightOf="@+id/Image1"
+        android:background="@drawable/image_button_style"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:textSize="18sp" />
 
 </RelativeLayout>

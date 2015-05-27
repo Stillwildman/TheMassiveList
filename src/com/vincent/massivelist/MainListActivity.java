@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Random;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.MemoryInfo;
@@ -18,6 +19,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.format.Formatter;
@@ -35,6 +37,7 @@ import android.view.View.OnKeyListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnGroupExpandListener;
@@ -131,6 +134,7 @@ public class MainListActivity extends Activity
 		setIconMap = new HashMap<String, Bitmap>();
 	}
 	
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 	class createAsyncList extends AsyncTask<String, Integer, Void>
 	{
 		private int count;
@@ -211,7 +215,7 @@ public class MainListActivity extends Activity
 				Map<String, String> listGroupItem = new HashMap<String, String>();
 
 				listGroupItem.put("groupSample", text);		//正常put進固定的內容
-				listGroupItem.put("groupNumber", ""+i);
+				listGroupItem.put("groupNumber", "User "+i);
 
 				for (int j = 0; j < ranCount; j++)						//從這裡開始run "ranCount" 次的迴圈
 				{
@@ -225,7 +229,7 @@ public class MainListActivity extends Activity
 						{
 							sb.append("This is the Chosen One! ");		//看該次的ranMultiList的值是多少，就run幾次
 						}
-						sb.insert(sb.length()/2, urlList[ran.nextInt(urlList.length)]);
+						//sb.insert(sb.length()/2, urlList[ran.nextInt(urlList.length)]);
 						
 						listGroupItem.put("groupSample", sb.toString());	//把該次的內容put進hashMap裡，覆蓋原本put的值
 					}
@@ -248,8 +252,13 @@ public class MainListActivity extends Activity
 		protected void onPostExecute(Void result)
 		{
 			exAdapter = new ExAdapter(MainListActivity.this, listGroup, listChild, urlList);
-			//exList.setIndicatorBounds(0,100);
+			if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR2)
+				exList.setIndicatorBounds(exList.getRight()-40, exList.getWidth());
+			else
+				exList.setIndicatorBoundsRelative(exList.getRight()-40, exList.getWidth());
+			
 			exList.setAdapter(exAdapter);
+			
 			dialog.dismiss();
 	    	//input.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
 		}
@@ -330,11 +339,11 @@ public class MainListActivity extends Activity
 		}
     };
     
-    private int getPixels(int dipValue)			//自行定義一個 Dip To Pixels 的功能！
+    public static int getPixels(int dipValue)			//自行定義一個 Dip To Pixels 的功能！
     {
-    	Resources res = getResources();
+    	Resources res = Resources.getSystem();
     	int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dipValue, res.getDisplayMetrics());
-    	Log.i("Dip to Pixels~~", "" + dipValue + " to " + px);
+    	//Log.i("Dip to Pixels~~", "" + dipValue + " to " + px);
     	return px;
     }
     
@@ -449,7 +458,7 @@ public class MainListActivity extends Activity
     	if (iconText.contains("http://") || iconText.contains("https://"))
     	{
     		String imgPathName = getImagePathByName(iconText);
-    		setIconMap.put(iconText, getDecodedBitmap(imgPathName, 80, 80));
+    		setIconMap.put(iconText, getDecodedBitmap(imgPathName, 100, 100));
     		textInput.setText(parser.addIconSpans(sb.toString(), setIconMap));
     	} else
     		textInput.setText(parser.addIconSpans(sb.toString(), setIconMap));
