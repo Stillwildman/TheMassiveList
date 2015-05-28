@@ -37,7 +37,6 @@ import android.view.View.OnKeyListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnGroupExpandListener;
@@ -242,7 +241,7 @@ public class MainListActivity extends Activity
 				List<Map<String, String>> listChildItems = new ArrayList<Map<String, String>>();
 				Map<String, String> listChildItem = new HashMap<String, String>();
 
-				listChildItem.put("childSample", ""+i);
+				listChildItem.put("childSample", "www.google.com\n02-3345678\nBrack@gmail.com  "+i);
 				listChildItems.add(listChildItem);
 				listChild.add(listChildItems);
 			}
@@ -258,6 +257,7 @@ public class MainListActivity extends Activity
 				exList.setIndicatorBoundsRelative(exList.getRight()-40, exList.getWidth());
 			
 			exList.setAdapter(exAdapter);
+			Log.w("ExListFocus",""+exList.hasFocusable());
 			
 			dialog.dismiss();
 	    	//input.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
@@ -458,7 +458,7 @@ public class MainListActivity extends Activity
     	if (iconText.contains("http://") || iconText.contains("https://"))
     	{
     		String imgPathName = getImagePathByName(iconText);
-    		setIconMap.put(iconText, getDecodedBitmap(imgPathName, 100, 100));
+    		setIconMap.put(iconText, getDecodedBitmap(imgPathName, 90, 90));
     		textInput.setText(parser.addIconSpans(sb.toString(), setIconMap));
     	} else
     		textInput.setText(parser.addIconSpans(sb.toString(), setIconMap));

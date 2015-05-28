@@ -24,7 +24,7 @@ import android.util.Log;
 import android.widget.ImageView;
 
 public class ImageLoader
-{    
+{
     MemoryCache memoryCache = new MemoryCache();
     FileCache fileCache;
     private Map<ImageView, String> imageViews = Collections.synchronizedMap(new WeakHashMap<ImageView, String>());

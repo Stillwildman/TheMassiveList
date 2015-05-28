@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.vincent.massivelist.LinkTextView.LinkTextViewMovementMethod;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -13,18 +14,12 @@ import android.graphics.Color;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Html;
-import android.text.Layout;
-import android.text.Spannable;
 import android.text.Spanned;
-import android.text.method.LinkMovementMethod;
-import android.text.style.ClickableSpan;
 import android.text.util.Linkify;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.EditText;
@@ -125,6 +120,8 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		} else
 			holder = (ViewHolder) convertView.getTag();
 		
+		((ViewGroup)convertView).setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+		
 		String groupText = (String) listGroup.get(groupPosition).get("groupSample");
 		String groupNumber = (String) listGroup.get(groupPosition).get("groupNumber");
 		
@@ -164,7 +161,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			
 			for (String imgUrl: imgUrlList)
 			{
-				if (!imgUrl.equals("Unknow Image URL!"))
+				if (!imgUrl.equals(context.getString(R.string.UnknowImageURL)))
 				{
 					Log.d("GetImageURL!!", imgUrl);
 					
@@ -190,7 +187,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 					}
 				} else {
 					holder.text1.setText(parser.addIconSpans(groupText, imgMap));
-					Log.i("Input URL", "Unknow URL!!!!!!");
+					Log.i("Input URL", "Unknow Image URL!!!!!!");
 					//((MainListActivity) context).shortMessage("Unknow URL!!");
 				}
 			}
@@ -205,10 +202,9 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		holder.text1.setFocusable(false);
 		holder.text1.setFocusableInTouchMode(false);
-		//holder.text1.setClickable(true);
-		Linkify.addLinks(holder.text1, Linkify.ALL);
-		holder.text1.setMovementMethod(LinkMovementMethod.getInstance());
-		holder.text1.setOnTouchListener(textTouch);
+		holder.text1.setClickable(true);
+		holder.text1.setAutoLinkMask(Linkify.ALL);
+		holder.text1.setMovementMethod(LinkTextViewMovementMethod.getInstance());
 		
 		holder.text2.setFocusable(false);
 		holder.text2.setFocusableInTouchMode(false);
@@ -437,7 +433,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 				urlList.add(urlSb.toString());
 			}
 			else
-				urlList.add("Unknow Image URL!");
+				urlList.add(context.getString(R.string.UnknowImageURL));
 		}
 		return urlList;
 	}
@@ -479,7 +475,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 				
 				String imgPathName = ((MainListActivity) context).getImagePathByName(urlString);	//藉由URL獲得完整的ImagePathName
 				try {
-					Bitmap imgBitmap = MainListActivity.getDecodedBitmap(imgPathName, 100, 100);
+					Bitmap imgBitmap = MainListActivity.getDecodedBitmap(imgPathName, 90, 90);
 					imgMap.put(urlString, imgBitmap);		//將下載好並Decode完後的Bitmap放入新版的 ImageMap 中！(key即為URL~)
 				}
 				catch(Exception e) {
@@ -503,43 +499,6 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			EditText inputText = (EditText) ((MainListActivity)context).findViewById(R.id.textInput);
 			inputText.setText(text);
 			inputText.setSelection(text.length());
-		}
-	};
-	
-	OnTouchListener textTouch = new OnTouchListener() {
-		@Override
-		public boolean onTouch(View v, MotionEvent event) {
-			boolean ret = false;
-			CharSequence text = ((TextView) v).getText();
-			Spannable spanText = Spannable.Factory.getInstance().newSpannable(text);
-			TextView widget = (TextView) v;
-			int action = event.getAction();
-			
-			if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_DOWN)
-			{
-				int x = (int) event.getX();
-				int y = (int) event.getY();
-				
-				x -= widget.getTotalPaddingLeft();
-				y -= widget.getTotalPaddingTop();
-				
-				x += widget.getScrollX();
-				x += widget.getScrollY();
-				
-				Layout layout = widget.getLayout();
-				int line = layout.getLineForVertical(y);
-				int off = layout.getOffsetForHorizontal(line, x);
-				
-				ClickableSpan[] link = spanText.getSpans(off, off, ClickableSpan.class);
-				
-				if (link.length != 0) {
-					if (action == MotionEvent.ACTION_UP) {
-						link[0].onClick(widget);
-					}
-					ret = true;
-				}
-			}
-			return ret;
 		}
 	};
 }

@@ -2,7 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/exGroupLayout"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content" >
+    android:layout_height="wrap_content"
+    android:descendantFocusability="blocksDescendants" >
 
     <ImageView
         android:id="@+id/Image1"
@@ -26,8 +27,9 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/groupText2"
         android:layout_marginBottom="10dp"
-        android:layout_marginLeft="15dp"
+        android:layout_marginLeft="20dp"
         android:layout_toRightOf="@+id/Image1"
+        android:longClickable="true"
         android:textSize="15sp" />
 
     <TextView
