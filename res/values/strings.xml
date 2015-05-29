@@ -3,10 +3,10 @@
 
     <string name="app_name">TheMassiveList</string>
     <string name="InputHint">Enter a number</string>
-    <string name="Version">6.0</string>
+    <string name="Version">6.1</string>
     <string name="cache_dirname">TheMassiveList/image_cache</string>
     <string name="ImageUrl">http://60.199.201.66/geticonlist.php</string>
     <string name="UnknowImageURL">Unknow Image URL!</string>
-    <string name="TestingText">Demo Message~\nwww.google.com\nbrack@gmail.com\n023345678  DO NOT call me after ten!</string>
+    <string name="TestingText">Demo Message~\thttp://flipermag.com/wp-content/uploads/2014/04/3Dontherocks-1.jpg\nwww.google.com\nbrack@gmail.com\n023345678\n\t\tDO NOT call me after ten!</string>
 
 </resources>

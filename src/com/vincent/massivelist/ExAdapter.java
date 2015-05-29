@@ -199,13 +199,15 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		holder.image.setFocusable(false);
 		holder.image.setFocusableInTouchMode(false);
 		holder.image.setClickable(true);
+		holder.image.setTag(url_array[ranUrlNumList.get(groupPosition)]);
+		holder.image.setOnClickListener(imgClick);
 		
 		holder.text1.setFocusable(false);
 		holder.text1.setFocusableInTouchMode(false);
 		holder.text1.setClickable(true);
-		holder.text1.setAutoLinkMask(Linkify.ALL);
-		holder.text1.setMovementMethod(LinkTextViewMovementMethod.getInstance());
-		
+		holder.text1.setAutoLinkMask(Linkify.ALL);		//手動設定LinkMask，但在這裡設的話，它只會幫你標線，不會有點擊事件！
+		holder.text1.setMovementMethod(LinkTextViewMovementMethod.getInstance());	//因此要再 setMovementMethod 給它，
+																					//這裡指定給我們客製化的 LinkTextView ~ 
 		holder.text2.setFocusable(false);
 		holder.text2.setFocusableInTouchMode(false);
 		holder.text2.setClickable(true);
@@ -283,6 +285,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		@SuppressWarnings("unchecked")
 		String childText = ((Map<String, String>)getChild(groupPosition, childPosition)).get("childSample");
 		sampleText.setText(childText);
+		sampleText.setMovementMethod(LinkTextViewMovementMethod.getInstance());
 		
 		return layout;
 	}
@@ -475,7 +478,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 				
 				String imgPathName = ((MainListActivity) context).getImagePathByName(urlString);	//藉由URL獲得完整的ImagePathName
 				try {
-					Bitmap imgBitmap = MainListActivity.getDecodedBitmap(imgPathName, 90, 90);
+					Bitmap imgBitmap = MainListActivity.getDecodedBitmap(imgPathName, 60, 60);
 					imgMap.put(urlString, imgBitmap);		//將下載好並Decode完後的Bitmap放入新版的 ImageMap 中！(key即為URL~)
 				}
 				catch(Exception e) {
@@ -499,6 +502,14 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			EditText inputText = (EditText) ((MainListActivity)context).findViewById(R.id.textInput);
 			inputText.setText(text);
 			inputText.setSelection(text.length());
+		}
+	};
+	
+	OnClickListener imgClick = new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			String imgUrl = v.getTag().toString();
+			((MainListActivity) context).popImageWindow(imgUrl);
 		}
 	};
 }

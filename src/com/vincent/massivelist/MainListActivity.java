@@ -13,11 +13,14 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.MemoryInfo;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -41,6 +44,7 @@ import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnGroupExpandListener;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -80,6 +84,7 @@ public class MainListActivity extends Activity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main_list_layout);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH);
 		this.setTitle(getResources().getString(R.string.app_name) + "_v" + getResources().getString(R.string.Version));
 		
 		exList = (ExpandableListView) findViewById(R.id.sampleExList);
@@ -241,7 +246,7 @@ public class MainListActivity extends Activity
 				List<Map<String, String>> listChildItems = new ArrayList<Map<String, String>>();
 				Map<String, String> listChildItem = new HashMap<String, String>();
 
-				listChildItem.put("childSample", "www.google.com\n02-3345678\nBrack@gmail.com  "+i);
+				listChildItem.put("childSample", "www.google.com  " + i + "\nbrack@gmail.com\n02-3345678");
 				listChildItems.add(listChildItem);
 				listChild.add(listChildItems);
 			}
@@ -458,7 +463,7 @@ public class MainListActivity extends Activity
     	if (iconText.contains("http://") || iconText.contains("https://"))
     	{
     		String imgPathName = getImagePathByName(iconText);
-    		setIconMap.put(iconText, getDecodedBitmap(imgPathName, 90, 90));
+    		setIconMap.put(iconText, getDecodedBitmap(imgPathName, 60, 60));
     		textInput.setText(parser.addIconSpans(sb.toString(), setIconMap));
     	} else
     		textInput.setText(parser.addIconSpans(sb.toString(), setIconMap));
@@ -597,6 +602,7 @@ public class MainListActivity extends Activity
     	iconShown = false;
     }
     
+    @Override
     public boolean onKeyDown(int keyCode, KeyEvent event)
 	{
 		if (keyCode == KeyEvent.KEYCODE_BACK || event.getAction() == KeyEvent.KEYCODE_BACK)
@@ -621,32 +627,35 @@ public class MainListActivity extends Activity
     	loading.setVisibility(View.GONE);
     }
     
-    public static Bitmap getDecodedBitmap(String imgPath, int reqWidth, int reqHeight)
+    public static Bitmap getDecodedBitmap(String imgPath, int reqWidth, int reqHeight)	//根據 Image 的大小來壓縮...
 	{
+    	int reqWidthPix = getPixels(reqWidth);		//把我們 Require 的值轉成 Pixels
+		int reqHeightPix = getPixels(reqHeight);
+    	
 		final BitmapFactory.Options options = new BitmapFactory.Options();
-		options.inJustDecodeBounds = true;
-		BitmapFactory.decodeFile(imgPath, options);
-		options.inSampleSize = getInSampleSize(options, reqWidth, reqHeight);
+		options.inJustDecodeBounds = true;			// inJustDecodeBounds = true 時，就可以直接抓出圖片屬性，而不用整張都載入
+		BitmapFactory.decodeFile(imgPath, options);	// decodeFile 是使用檔案的路徑喔~
+		options.inSampleSize = getInSampleSize(options, reqWidthPix, reqHeightPix);	//藉由 getInSampleSize，指定 inSampleSize 的數值
 		
-		int imgWidth = options.outWidth;
+		int imgWidth = options.outWidth;		//獲得來源 Image 的寬度 長度 & Type
 		int imgHeight = options.outHeight;
-		String imgType = options.outMimeType;
+		String imgType = options.outMimeType;	//這一段只是為了把資訊Log出來，其實可以不用寫~
 		Log.i("ImageInfo~", imgType + " " + imgWidth + " x " + imgHeight);
 		
-		options.inJustDecodeBounds = false;
-		Bitmap imageInSampleSize = BitmapFactory.decodeFile(imgPath, options);
-		return createScaleBitmap(imageInSampleSize, reqWidth, reqHeight, options.inSampleSize);
+		options.inJustDecodeBounds = false;	//屬性抓完了，就可以把 inJustDecodeBounds 給關掉了~
+		Bitmap imageInSampleSize = BitmapFactory.decodeFile(imgPath, options);	//這時後 options 中的數值是已經被重新指定過了喔！
+		return createScaleBitmap(imageInSampleSize, reqWidthPix, reqHeightPix, options.inSampleSize);
 	}
 	
 	private static int getInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight)
 	{
-		final int width = options.outWidth;
+		final int width = options.outWidth;			//來源 Image 的寬度&高度~
 		final int height = options.outHeight;
 		int inSampleSize = 1;
 		
-		if (width > reqWidth || height > reqHeight)
+		if (width > reqWidth || height > reqHeight)	//如果來源的長寬 大於 Require 的話...
 		{
-			final int halfWidth = width / 2;
+			final int halfWidth = width / 2;		//就除一半阿~
 			final int halfHeight = height / 2;
 			
 			while ((halfWidth / inSampleSize) > reqWidth && (halfHeight / inSampleSize) > reqHeight)
@@ -687,6 +696,53 @@ public class MainListActivity extends Activity
 			return null;										//但 URL 就已經先丟過來了，所以當然找不到啦~~	
 		}
 	}
+	
+	@SuppressLint("InflateParams")
+	@SuppressWarnings("deprecation")
+	public void popImageWindow(String imgUrl)	//彈出顯示image用的視窗，雖然名子裡有pop，但其實是用 AlertDialog
+	{
+		WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+		int screenWidth = wm.getDefaultDisplay().getWidth();
+		int screenHeight = wm.getDefaultDisplay().getHeight();
+		
+		int windowWidth = (int) (screenWidth / 1.2);
+		int windowHeight = (int) (screenHeight / 2.2);
+		
+		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(MainListActivity.this);
+		LayoutInflater inflater = getLayoutInflater();
+		View view = inflater.inflate(R.layout.dialog_img_layout, null);
+		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
+				(windowWidth, windowHeight, Gravity.CENTER);
+		view.setLayoutParams(params);
+		dialogBuilder.setView(view);
+		
+		AlertDialog dialog = dialogBuilder.create();
+		
+		Window dialogWindow = dialog.getWindow();
+		WindowManager.LayoutParams windowParams = dialogWindow.getAttributes();
+		windowParams.alpha = 0.9f;
+		windowParams.width = windowWidth;
+		windowParams.height = windowHeight;
+		
+		dialog.show();
+		
+		ImageView iv = (ImageView) view.findViewById(R.id.imagePopLayout);
+		iv.setLayoutParams(params);
+		iv.setScaleType(ScaleType.CENTER_CROP);
+		final String imgName = getImagePathByName(imgUrl);
+		Bitmap imgBitmap = BitmapFactory.decodeFile(imgName);
+		iv.setImageBitmap(imgBitmap);
+		
+		iv.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent();
+				intent.setAction(Intent.ACTION_VIEW);
+				intent.setDataAndType(Uri.fromFile(new File(imgName)), "image/*");
+				startActivity(intent);
+			}
+		});
+	}
     
 	public void shortMessage(String msg)
 	{
@@ -700,6 +756,7 @@ public class MainListActivity extends Activity
 		menuInflater.inflate(R.menu.menu_options, menu);
 		return true;
 	}
+	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
 	{
@@ -716,7 +773,7 @@ public class MainListActivity extends Activity
 			break;
 		
 		case R.id.menu_test:
-			//createIconsBtn();
+			//popImageWindow();
 			break;
 		}
 		return true;

@@ -109,7 +109,8 @@ public class SmileysParser
 		{
 			int resId = smileyMap.get(smileyMatcher.group());
 			Drawable resDraw = context.getResources().getDrawable(resId);
-			resDraw.setBounds(0, 0, 50, 50);
+			int reqValue = MainListActivity.getPixels(30);
+			resDraw.setBounds(0, 0, reqValue, reqValue);
 
 			ImageSpan imageSpan = new ImageSpan(resDraw, ImageSpan.ALIGN_BOTTOM); 
 			builder.setSpan(imageSpan, smileyMatcher.start(), smileyMatcher.end(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -137,7 +138,8 @@ public class SmileysParser
 		Matcher waitMatcher = waitPattern(url).matcher(text);
 		
 		Drawable waitDraw = context.getResources().getDrawable(R.drawable.wait01);
-		waitDraw.setBounds(0, 0, 50, 50);
+		int reqValue = MainListActivity.getPixels(30);
+		waitDraw.setBounds(0, 0, reqValue, reqValue);
 		
 		while (waitMatcher.find())
 		{

@@ -105,28 +105,38 @@ public class LinkTextView extends TextView
 				
 				if (link.length != 0)	// 是連結點擊
 				{
+					String linkedText = widget.getText().toString()
+							.substring(buffer.getSpanStart(link[0]), buffer.getSpanEnd(link[0]));
+					
 					if (widget instanceof LinkTextView)		// 如果實體是LinkTextView
 					{
 						((LinkTextView) widget).linkHit = true;
 					}
 					if (action == MotionEvent.ACTION_UP)	// 放開時
 					{
-						link[0].onClick(widget); // 開啟連結
-					}
-					else if (action == MotionEvent.ACTION_DOWN)	// 按下時
-					{
 						Selection.setSelection(buffer, buffer.getSpanStart(link[0]), buffer.getSpanEnd(link[0]));	// 選擇連結
-						
-						String linkedText = widget.getText().toString()
-								.substring(buffer.getSpanStart(link[0]), buffer.getSpanEnd(link[0]));
 						
 						if (linkedText.contains(".png") || linkedText.contains(".jpg") || 
 								linkedText.contains(".gif") || linkedText.contains("bmp"))
 						{
-							
+							Context context = widget.getContext();
+							((MainListActivity) context).popImageWindow(linkedText);
 						}
+						else
+							link[0].onClick(widget); // 開啟連結
+					}
+					/*	
+					 * ---4.2以上的版本，只會偵測到一次動作，因此若有判斷 ACTION_DOWN，就判斷不到 ACTION_UP 了!!!...
+					 * 
+					 * 到底是什麼原因...這BUG究竟是.....目前我依然不懂阿~~~~~可惡!想知道!
+					 * 
+					else if (action == MotionEvent.ACTION_DOWN)	// 按下時
+					{
+						Selection.setSelection(buffer, buffer.getSpanStart(link[0]), buffer.getSpanEnd(link[0]));	
+						Log.i("LINK EVENT!!", linkedText);
 						//link[0].onClick(widget);
 					}
+					*/
 					Log.i("LINK EVENT!!", "Got Click!!!!");
 					return true;
 				}
