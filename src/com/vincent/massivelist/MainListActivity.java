@@ -58,6 +58,7 @@ public class MainListActivity extends Activity
 	private ExAdapter exAdapter;
 	
 	private EditText textInput;
+	private static TextView user2;
 	
 	private EditText numberInput;
 	
@@ -84,7 +85,6 @@ public class MainListActivity extends Activity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main_list_layout);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		getWindow().addFlags(WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH);
 		this.setTitle(getResources().getString(R.string.app_name) + "_v" + getResources().getString(R.string.Version));
 		
 		exList = (ExpandableListView) findViewById(R.id.sampleExList);
@@ -96,6 +96,8 @@ public class MainListActivity extends Activity
 		textInput.setFocusable(true);
 		textInput.setFocusableInTouchMode(true);
 		textInput.setOnKeyListener(goKey);
+		
+		user2 = (TextView) findViewById(R.id.userText);
 		
 		numberInput = (EditText) findViewById(R.id.numberInput);
 		numberInput.setFocusable(true);
@@ -225,7 +227,7 @@ public class MainListActivity extends Activity
 				{
 					if (i == ranNumList.get(j))							//如果該次的 i 等於ranNumList其中一個數字的話...
 					{													//由於 i 是從 1 開始去run，所以一定是從ranNumList中最小的值開始抓到
-						sb = new StringBuilder();			
+						sb = new StringBuilder();
 						//Log.i("ranNumberList",""+ranNumList.get(j));	//把該次比對到的值Log出來，從最小到最大...
 																		//所以在這裡也順便給 ranNumList 給做了排序...
 																		//意外發現 Bubble Sort 之外的另一個排序法阿！
@@ -246,7 +248,7 @@ public class MainListActivity extends Activity
 				List<Map<String, String>> listChildItems = new ArrayList<Map<String, String>>();
 				Map<String, String> listChildItem = new HashMap<String, String>();
 
-				listChildItem.put("childSample", "www.google.com  " + i + "\nbrack@gmail.com\n02-3345678");
+				listChildItem.put("childSample", "www.google.com\t" + i + "\nbrack@gmail.com\t\n+903345678\t");
 				listChildItems.add(listChildItem);
 				listChild.add(listChildItems);
 			}
@@ -263,6 +265,8 @@ public class MainListActivity extends Activity
 			
 			exList.setAdapter(exAdapter);
 			Log.w("ExListFocus",""+exList.hasFocusable());
+			
+			exAdapter.setUserAndTextChanged("", "", false);
 			
 			dialog.dismiss();
 	    	//input.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
@@ -310,19 +314,35 @@ public class MainListActivity extends Activity
 	{
 		input = textInput.getText().toString();
 		
-		if (!input.isEmpty())										//判斷 textInput 不是空的話，就顯示來自使用者的input
+		if (!user2.isShown())
 		{
-			if (inputNum.isEmpty())
-				new createAsyncList().execute(defualtNum, input);
-			else
-				new createAsyncList().execute(inputNum, input);
+			if (!input.isEmpty())										//判斷 textInput 不是空的話，就顯示來自使用者的input
+			{
+				exAdapter.setUserAndTextChanged("", input, true);
+				/*
+				if (inputNum.isEmpty())
+					new createAsyncList().execute(defualtNum, input);
+				else
+					new createAsyncList().execute(inputNum, input);
+				*/
+			} else														//否則就顯示預設的 TestingText
+			{
+				exAdapter.setUserAndTextChanged("", getString(R.string.TestingText), true);
+				/*
+				if (inputNum.isEmpty())
+					new createAsyncList().execute(defualtNum, getResources().getString(R.string.TestingText));
+				else
+					new createAsyncList().execute(inputNum, getResources().getString(R.string.TestingText));
+				*/
+			}
 		} else
 		{
-			if (inputNum.isEmpty())									//否則就顯示預設的 TestingText
-				new createAsyncList().execute(defualtNum, getResources().getString(R.string.TestingText));
+			if (!input.isEmpty())
+				exAdapter.setUserAndTextChanged(user2.getText().toString(), input, true);
 			else
-				new createAsyncList().execute(inputNum, getResources().getString(R.string.TestingText));
+				exAdapter.setUserAndTextChanged(user2.getText().toString(), getString(R.string.TestingText), true);
 		}
+		
 		textInput.setText("");			
 	}
 	
@@ -398,7 +418,7 @@ public class MainListActivity extends Activity
     			iconsLayout.addView(iconLayout);	//如果是第一圈 (isFirstCreate)，就先無條件的加入一次 Layout
     			isFirstCreate = false;
     		}
-    		else if (btnWidthSum <= screenWidth)	//如果 imgBtn 所累加的寬度，還沒大於螢幕寬度的話，就繼續在 add 在原本的Layout中
+    		else if (btnWidthSum <= screenWidth)	//如果 imgBtn 所累加的寬度，還沒大於螢幕寬度的話，就繼續 add 在原本的Layout中
     		{
     			iconLayout.addView(imgBtn);
     		}
@@ -724,6 +744,7 @@ public class MainListActivity extends Activity
 		windowParams.width = windowWidth;
 		windowParams.height = windowHeight;
 		
+		dialog.setCanceledOnTouchOutside(true);
 		dialog.show();
 		
 		ImageView iv = (ImageView) view.findViewById(R.id.imagePopLayout);
@@ -740,6 +761,18 @@ public class MainListActivity extends Activity
 				intent.setAction(Intent.ACTION_VIEW);
 				intent.setDataAndType(Uri.fromFile(new File(imgName)), "image/*");
 				startActivity(intent);
+			}
+		});
+	}
+	
+	public static void toUser2 (String userName)
+	{
+		user2.setVisibility(View.VISIBLE);
+		user2.setText(userName.trim());
+		user2.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				user2.setVisibility(View.GONE);
 			}
 		});
 	}

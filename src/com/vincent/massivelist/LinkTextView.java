@@ -123,16 +123,16 @@ public class LinkTextView extends TextView
 							((MainListActivity) context).popImageWindow(linkedText);
 						}
 						else
-							link[0].onClick(widget); // 開啟連結
+							link[0].onClick(widget);	// 開啟連結
 					}
 					/*	
 					 * ---4.2以上的版本，只會偵測到一次動作，因此若有判斷 ACTION_DOWN，就判斷不到 ACTION_UP 了!!!...
 					 * 
-					 * 到底是什麼原因...這BUG究竟是.....目前我依然不懂阿~~~~~可惡!想知道!
+					 * 這問題究竟是.......不懂阿~~~~~~~~可惡!!想知道!!
 					 * 
 					else if (action == MotionEvent.ACTION_DOWN)	// 按下時
 					{
-						Selection.setSelection(buffer, buffer.getSpanStart(link[0]), buffer.getSpanEnd(link[0]));	
+						Selection.setSelection(buffer, buffer.getSpanStart(link[0]), buffer.getSpanEnd(link[0]));
 						Log.i("LINK EVENT!!", linkedText);
 						//link[0].onClick(widget);
 					}

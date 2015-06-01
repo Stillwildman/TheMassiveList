@@ -22,7 +22,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -54,6 +53,10 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	private ArrayList<String> ranHtmlColorList;
 	private ArrayList<Integer> ranHtmlIconList;
 	
+	private String toUserText;
+	private String changedText;
+	private boolean textChanged;
+	
 	public ExAdapter(Context context, List<Map<String, String>> listGroup,List<List<Map<String, String>>> listChild, String[] urlList)
 	{
 		this.context = context;
@@ -80,6 +83,8 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		ranHtmlColorList = new ArrayList<String>();				//然後要在某個 isDivisible 的地方顯示用的~
 		ranHtmlIconList = new ArrayList<Integer>();
 		setRanHtmlAtDivisible(5);
+		
+		
 	}
 
 	@Override
@@ -111,9 +116,11 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			convertView = inflater.inflate(R.layout.ex_group, null);
 			
 			holder = new ViewHolder();
-			holder.text1 = (TextView) convertView.findViewById(R.id.groupText1);
-			holder.text2 = (TextView) convertView.findViewById(R.id.groupText2);
-			holder.toText = (TextView) convertView.findViewById(R.id.toText);
+			holder.mainText = (TextView) convertView.findViewById(R.id.groupText);
+			holder.userText1 = (TextView) convertView.findViewById(R.id.groupText_User1);
+			holder.userText2 = (TextView) convertView.findViewById(R.id.groupText_User2);
+			holder.toText1 = (TextView) convertView.findViewById(R.id.toText1);
+			holder.toText2 = (TextView) convertView.findViewById(R.id.toText2);
 			holder.image = (ImageView) convertView.findViewById(R.id.Image1);
 			
 			convertView.setTag(holder);
@@ -124,6 +131,9 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		String groupText = (String) listGroup.get(groupPosition).get("groupSample");
 		String groupNumber = (String) listGroup.get(groupPosition).get("groupNumber");
+		
+		if (textChanged)
+			groupText = changedText;
 		
 		try
 		{
@@ -168,16 +178,16 @@ public class ExAdapter extends BaseExpandableListAdapter {
 					if (imgMap.containsKey(imgUrl))
 					{
 						try {
-							holder.text1.setText(parser.addIconSpans(groupText, imgMap));
+							holder.mainText.setText(parser.addIconSpans(groupText, imgMap));
 							Log.i("ExistsFileViewed", imgUrl.substring(imgUrl.lastIndexOf("/")));
 						} catch (Exception e) {
-							holder.text1.setText(parser.addWaitSpans(groupText, imgUrl.substring(imgUrl.lastIndexOf("."))));
+							holder.mainText.setText(parser.addWaitSpans(groupText, imgUrl.substring(imgUrl.lastIndexOf("."))));
 							((MainListActivity) context).shortMessage("Slow Down Please!");
 						}
 					}
 					else {
 						try {
-							holder.text1.setText(parser.addWaitSpans(groupText, imgUrl));
+							holder.mainText.setText(parser.addWaitSpans(groupText, imgUrl));
 							downloadBitmapByUrl(imgUrl);
 							Log.i("ImageFile", "OH YEAH~~~~~~~~~~");
 						} catch (Exception e) {
@@ -186,15 +196,15 @@ public class ExAdapter extends BaseExpandableListAdapter {
 						}
 					}
 				} else {
-					holder.text1.setText(parser.addIconSpans(groupText, imgMap));
+					holder.mainText.setText(parser.addIconSpans(groupText, imgMap));
 					Log.i("Input URL", "Unknow Image URL!!!!!!");
 					//((MainListActivity) context).shortMessage("Unknow URL!!");
 				}
 			}
 		} else
-			holder.text1.setText(parser.addIconSpans(groupText, null));
+			holder.mainText.setText(parser.addIconSpans(groupText, null));
 		
-		holder.text2.setText(groupNumber);
+		holder.userText1.setText(groupNumber);
 		
 		holder.image.setFocusable(false);
 		holder.image.setFocusableInTouchMode(false);
@@ -202,27 +212,48 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		holder.image.setTag(url_array[ranUrlNumList.get(groupPosition)]);
 		holder.image.setOnClickListener(imgClick);
 		
-		holder.text1.setFocusable(false);
-		holder.text1.setFocusableInTouchMode(false);
-		holder.text1.setClickable(true);
-		holder.text1.setAutoLinkMask(Linkify.ALL);		//手動設定LinkMask，但在這裡設的話，它只會幫你標線，不會有點擊事件！
-		holder.text1.setMovementMethod(LinkTextViewMovementMethod.getInstance());	//因此要再 setMovementMethod 給它，
+		holder.mainText.setFocusable(false);
+		holder.mainText.setFocusableInTouchMode(false);
+		holder.mainText.setClickable(true);
+		holder.mainText.setAutoLinkMask(Linkify.ALL);		//手動設定LinkMask，但在這裡設的話，它只會幫你標線，不會有點擊事件！
+		holder.mainText.setMovementMethod(LinkTextViewMovementMethod.getInstance());	//因此要再 setMovementMethod 給它，
 																					//這裡指定給我們客製化的 LinkTextView ~ 
-		holder.text2.setFocusable(false);
-		holder.text2.setFocusableInTouchMode(false);
-		holder.text2.setClickable(true);
-		holder.text2.setTag(holder.text2.getText());
-		holder.text2.setOnClickListener(userClick);
-
+		holder.userText1.setFocusable(false);
+		holder.userText1.setFocusableInTouchMode(false);
+		holder.userText1.setClickable(true);
+		holder.userText1.setTag(holder.userText1.getText());
+		holder.userText1.setOnClickListener(userClick);
 		
-		holder.text1.setTextColor(Color.BLACK);							//此處解釋請參照下面的convertView!
-		holder.text2.setTextColor(Color.BLACK);
+		if (toUserText.length() != 0)
+		{
+			if (toUserText != groupNumber)
+			{
+				holder.toText1.setText("-->");
+				holder.toText2.setVisibility(View.VISIBLE);
+				holder.userText2.setVisibility(View.VISIBLE);
+				holder.userText2.setText(toUserText);
+			} else {
+				holder.userText2.setVisibility(View.GONE);
+				holder.toText2.setVisibility(View.GONE);
+				holder.toText1.setText(":");
+				holder.mainText.setText("");
+			}
+		} else
+		{
+			holder.toText1.setText(":");
+			holder.toText2.setVisibility(View.GONE);
+			holder.userText2.setVisibility(View.GONE);
+		}
+		
+		holder.mainText.setTextColor(Color.BLACK);							//此處解釋請參照下面的convertView!
+		holder.userText1.setTextColor(Color.BLACK);
+		holder.userText1.setTextColor(Color.DKGRAY);
 		for (int i = 0; i < ranCount; i++)								//run ranCount 次的迴圈，比對目前的Position與被選出來的Position是否一樣
 		{
 			if (groupPosition+1 == ranPosList.get(i))					// ranPosList 中的值是從 1 開始，groupPosition是從 0 開始，所以要+1
 			{
-				holder.text1.setTextColor(Integer.parseInt(ranColorList.get(i)));
-				holder.text2.setTextColor(Integer.parseInt(ranColorList.get(ranCount-(i+1))));		//反向從 ranColorList 中取出值來！
+				holder.mainText.setTextColor(Integer.parseInt(ranColorList.get(i)));
+				holder.userText1.setTextColor(Integer.parseInt(ranColorList.get(ranCount-(i+1))));		//反向從 ranColorList 中取出值來！
 			}
 		}
 		
@@ -304,9 +335,11 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	
 	static class ViewHolder		//自行定義一個ViewHolder，裡面放要在convetView中用到的東西
 	{
-		TextView text1;
-		TextView text2;
-		TextView toText;
+		TextView mainText;
+		TextView userText1;
+		TextView userText2;
+		TextView toText1;
+		TextView toText2;
 		ImageView image;
 	}
 	
@@ -475,8 +508,8 @@ public class ExAdapter extends BaseExpandableListAdapter {
 					urlString = (String) msg.obj;
 				
 				Log.d("DownloadedURL!", urlString.substring(urlString.lastIndexOf("/")));
-				
 				String imgPathName = ((MainListActivity) context).getImagePathByName(urlString);	//藉由URL獲得完整的ImagePathName
+				
 				try {
 					Bitmap imgBitmap = MainListActivity.getDecodedBitmap(imgPathName, 60, 60);
 					imgMap.put(urlString, imgBitmap);		//將下載好並Decode完後的Bitmap放入新版的 ImageMap 中！(key即為URL~)
@@ -499,9 +532,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		@Override
 		public void onClick(View v) {
 			String text = (String) v.getTag();
-			EditText inputText = (EditText) ((MainListActivity)context).findViewById(R.id.textInput);
-			inputText.setText(text);
-			inputText.setSelection(text.length());
+			MainListActivity.toUser2(text);
 		}
 	};
 	
@@ -512,4 +543,12 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			((MainListActivity) context).popImageWindow(imgUrl);
 		}
 	};
+	
+	public void setUserAndTextChanged(String user2, String mainText, boolean changed)
+	{
+		toUserText = user2;
+		changedText = mainText;
+		textChanged = changed;
+		notifyDataSetChanged();
+	}
 }

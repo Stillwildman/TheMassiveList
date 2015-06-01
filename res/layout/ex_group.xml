@@ -3,6 +3,7 @@
     android:id="@+id/exGroupLayout"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:animateLayoutChanges="true"
     android:descendantFocusability="blocksDescendants" >
 
     <ImageView
@@ -13,27 +14,48 @@
         android:scaleType="centerCrop" />
 
     <TextView
-        android:id="@+id/toText"
+        android:id="@+id/toText1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
-        android:layout_toRightOf="@+id/groupText2"
+        android:layout_toRightOf="@+id/groupText_User1"
         android:text=": "
         android:textSize="18sp" />
 
     <TextView
-        android:id="@+id/groupText1"
+        android:id="@+id/groupText_User2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/groupText2"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_toRightOf="@+id/toText1"
+        android:background="@drawable/image_button_style"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/toText2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:layout_toRightOf="@+id/groupText_User2"
+        android:text=":"
+        android:textSize="18sp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/groupText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/groupText_User1"
         android:layout_marginBottom="10dp"
         android:layout_marginLeft="20dp"
         android:layout_toRightOf="@+id/Image1"
-        android:longClickable="true"
         android:textSize="15sp" />
 
     <TextView
-        android:id="@+id/groupText2"
+        android:id="@+id/groupText_User1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"

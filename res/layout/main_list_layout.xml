@@ -106,7 +106,9 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
+            android:layout_height="wrap_content"
+            android:animateLayoutChanges="true"
+            android:gravity="center_vertical" >
 
             <ImageButton
                 android:id="@+id/showIconBtn"
@@ -117,12 +119,25 @@
                 android:onClick="showIconClick"
                 android:src="@android:drawable/ic_menu_add" />
 
+            <TextView
+                android:id="@+id/userText"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_weight="0"
+                android:background="@drawable/button_style01"
+                android:clickable="true"
+                android:gravity="center"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
             <EditText
                 android:id="@+id/textInput"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_weight="2"
+                android:layout_weight="3"
                 android:ems="10"
                 android:focusable="false"
                 android:focusableInTouchMode="false"
@@ -135,7 +150,7 @@
                 android:id="@+id/sendBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:layout_weight="3"
+                android:layout_weight="1"
                 android:onClick="sendClick"
                 android:scaleType="fitCenter"
                 android:src="@drawable/sand_icon" />
