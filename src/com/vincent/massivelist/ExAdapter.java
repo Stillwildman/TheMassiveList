@@ -8,24 +8,33 @@ import java.util.Random;
 
 import com.vincent.massivelist.LinkTextView.LinkTextViewMovementMethod;
 import android.annotation.SuppressLint;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Html;
+import android.text.Layout;
+import android.text.Selection;
 import android.text.Spanned;
 import android.text.util.Linkify;
 import android.util.Log;
+import android.view.ActionMode;
+import android.view.ActionMode.Callback;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+@SuppressLint("NewApi")
 public class ExAdapter extends BaseExpandableListAdapter {
 	
 	private Context context;
@@ -174,13 +183,13 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			{
 				if (!imgUrl.equals(context.getString(R.string.UnknowImageURL)))
 				{
-					Log.d("GetImageURL!!", imgUrl);
+					//Log.d("GetImageURL!!", imgUrl);
 					
 					if (imgMap.containsKey(imgUrl))
 					{
 						try {
 							holder.mainText.setText(parser.addIconSpans(groupText, imgMap));
-							Log.i("ExistsFileViewed", imgUrl.substring(imgUrl.lastIndexOf("/")));
+							//Log.i("ExistsFileViewed", imgUrl.substring(imgUrl.lastIndexOf("/")));
 						} catch (Exception e) {
 							holder.mainText.setText(parser.addWaitSpans(groupText, imgUrl.substring(imgUrl.lastIndexOf("."))));
 							((MainListActivity) context).shortMessage("Slow Down Please!");
@@ -204,7 +213,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		} else
 			holder.mainText.setText(parser.addIconSpans(groupText, null));
 		
-		holder.userText1.setText(groupNumber);
+		holder.userText1.setText(Html.fromHtml("<u>" + groupNumber + "</u>"));
 		
 		holder.image.setFocusable(false);
 		holder.image.setFocusableInTouchMode(false);
@@ -212,9 +221,13 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		holder.image.setTag(url_array[ranUrlNumList.get(groupPosition)]);
 		holder.image.setOnClickListener(imgClick);
 		
-		holder.mainText.setFocusable(false);
-		holder.mainText.setFocusableInTouchMode(false);
-		holder.mainText.setClickable(true);
+		//holder.mainText.setFocusable(false);
+		//holder.mainText.setFocusableInTouchMode(false);
+		//holder.mainText.setClickable(true);
+		holder.mainText.setLongClickable(true);
+		holder.mainText.setTag(holder.mainText.getText().toString());
+		holder.mainText.setOnLongClickListener(longClick);
+		//holder.mainText.setTextIsSelectable(true);
 		holder.mainText.setAutoLinkMask(Linkify.ALL);		//手動設定LinkMask，但在這裡設的話，它只會幫你標線，不會有點擊事件！
 		holder.mainText.setMovementMethod(LinkTextViewMovementMethod.getInstance());	//因此要再 setMovementMethod 給它，
 																					//這裡指定給我們客製化的 LinkTextView ~ 
@@ -230,14 +243,14 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		holder.userText2.setTag(holder.userText2.getText());
 		holder.userText2.setOnClickListener(user2Click);
 		
-		if (toUserText.length() != 0)			//如果 toUserText 長度不等於 0 的話，也就是有變動過的話...
+		if (!toUserText.isEmpty())			//如果 toUserText 不是Empty，也就是有變動過的話...
 		{
-			if (toUserText != groupNumber)		
+			if (!toUserText.equals(groupNumber))		
 			{
 				holder.toText1.setText("-->");
 				holder.toText2.setVisibility(View.VISIBLE);
 				holder.userText2.setVisibility(View.VISIBLE);
-				holder.userText2.setText(toUserText);
+				holder.userText2.setText(Html.fromHtml("<u>" + toUserText + "</u>"));
 			} else {
 				holder.userText2.setVisibility(View.GONE);
 				holder.toText2.setVisibility(View.GONE);
@@ -534,10 +547,34 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		}
 	};
 	
+	OnLongClickListener longClick = new OnLongClickListener() {
+		@SuppressWarnings("deprecation")
+		@Override
+		public boolean onLongClick(View v) {
+			//((MainListActivity) context).shortMessage("You Got Me~");
+			//ClipboardManager cliper = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+			//cliper.setText(v.getTag().toString());
+			LinkTextView.LinkTextViewMovementMethod.cancelMotion();
+			
+			
+			/*
+			EditText widget = (EditText) v.getTag();
+			Layout layout = widget.getLayout();
+			int off;
+			int line = 0;
+			
+			line = layout.getLineForVertical(widget.getScrollY() + (int) v.getY());
+			off = layout.getOffsetForHorizontal(line, (int) v.getX());
+			Selection.setSelection(widget.getEditableText(), off);
+			*/
+			return false;
+		}
+	};
+	
 	OnClickListener userClick = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
-			String text = (String) v.getTag();
+			String text = v.getTag().toString();
 			MainListActivity.toUser2(text);
 		}
 	};
@@ -545,7 +582,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	OnClickListener user2Click = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
-			String text = (String) v.getTag();
+			String text = v.getTag().toString();
 			MainListActivity.toUser2(text);
 		}
 	};

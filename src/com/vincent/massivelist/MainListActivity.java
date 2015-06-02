@@ -37,11 +37,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
+import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.ExpandableListView.OnGroupExpandListener;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -124,6 +126,7 @@ public class MainListActivity extends Activity
 						new createAsyncList().execute(inputNum, input);
 					}
 				}
+				user2.setVisibility(View.GONE);
 				return false;
 			}
 		});
@@ -267,8 +270,18 @@ public class MainListActivity extends Activity
 			exList.setAdapter(exAdapter);
 			Log.w("ExListFocus",""+exList.hasFocusable());
 			
-			exAdapter.setUserAndTextChanged("", "", false);
+			exList.setOnGroupClickListener(new OnGroupClickListener() {
+				@Override
+				public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
+					TextView mainText = (TextView) v.findViewById(R.id.groupText);
+					parent.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+					mainText.setTextIsSelectable(true);
+					mainText.requestFocus();
+					return false;
+				}
+			});
 			
+			exAdapter.setUserAndTextChanged("", "", false);
 			dialog.dismiss();
 	    	//input.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
 		}
@@ -313,6 +326,7 @@ public class MainListActivity extends Activity
 	
 	public void sendClick(View view)
 	{
+		InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
 		input = textInput.getText().toString();
 		
 		if (!user2.isShown())
@@ -343,11 +357,11 @@ public class MainListActivity extends Activity
 			else
 				exAdapter.setUserAndTextChanged(user2.getText().toString(), getString(R.string.TestingText), true);
 		}
-		
-		textInput.setText("");			
+		textInput.setText("");
+		imm.hideSoftInputFromWindow(view.getApplicationWindowToken(),0);
 	}
 	
-	OnKeyListener goKey = new OnKeyListener() {						//監聽軟體鍵盤上的動作！
+	OnKeyListener goKey = new OnKeyListener() {					//監聽軟體鍵盤上的動作！
 		@Override
 		public boolean onKey(View v, int keyCode, KeyEvent event) {
 			// TODO Auto-generated method stub
@@ -355,9 +369,9 @@ public class MainListActivity extends Activity
 				
     			InputMethodManager input = (InputMethodManager)v.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
     			
-    			if (input.isActive()) {							//會觸發 sendClick() 這個 Function
+    			if (input.isActive()) {						//會觸發 sendClick() 這個 Function
     				sendClick(v);
-    				//input.hideSoftInputFromWindow(v.getApplicationWindowToken(), 0);
+    				input.hideSoftInputFromWindow(v.getApplicationWindowToken(), 0);
     			}
     			return true;
     		}
