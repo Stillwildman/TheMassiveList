@@ -105,7 +105,8 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		return groupPosition;
 	}
 	
-	@SuppressLint("InflateParams") @Override
+	@SuppressLint("InflateParams")
+	@Override
 	public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent)
 	{
 		// TODO Auto-generated method stub
@@ -132,7 +133,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		String groupText = (String) listGroup.get(groupPosition).get("groupSample");
 		String groupNumber = (String) listGroup.get(groupPosition).get("groupNumber");
 		
-		if (textChanged)
+		if (textChanged)				//暫時性使用的方案，如果有 Text Changed 的話，就覆蓋 groupText 的內容~
 			groupText = changedText;
 		
 		try
@@ -198,7 +199,6 @@ public class ExAdapter extends BaseExpandableListAdapter {
 				} else {
 					holder.mainText.setText(parser.addIconSpans(groupText, imgMap));
 					Log.i("Input URL", "Unknow Image URL!!!!!!");
-					//((MainListActivity) context).shortMessage("Unknow URL!!");
 				}
 			}
 		} else
@@ -224,9 +224,15 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		holder.userText1.setTag(holder.userText1.getText());
 		holder.userText1.setOnClickListener(userClick);
 		
-		if (toUserText.length() != 0)
+		holder.userText2.setFocusable(false);
+		holder.userText2.setFocusableInTouchMode(false);
+		holder.userText2.setClickable(true);
+		holder.userText2.setTag(holder.userText2.getText());
+		holder.userText2.setOnClickListener(user2Click);
+		
+		if (toUserText.length() != 0)			//如果 toUserText 長度不等於 0 的話，也就是有變動過的話...
 		{
-			if (toUserText != groupNumber)
+			if (toUserText != groupNumber)		
 			{
 				holder.toText1.setText("-->");
 				holder.toText2.setVisibility(View.VISIBLE);
@@ -536,6 +542,14 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		}
 	};
 	
+	OnClickListener user2Click = new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			String text = (String) v.getTag();
+			MainListActivity.toUser2(text);
+		}
+	};
+	
 	OnClickListener imgClick = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
@@ -543,8 +557,12 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			((MainListActivity) context).popImageWindow(imgUrl);
 		}
 	};
-	
-	public void setUserAndTextChanged(String user2, String mainText, boolean changed)
+	/**
+	 * @param user2		User2名子
+	 * @param mainText	更新後的mainText
+	 * @param changed	是否要套用新的mainText
+	 */
+	public void setUserAndTextChanged(String user2, String mainText, boolean changed)	//動態更新 exAdapter 的內容
 	{
 		toUserText = user2;
 		changedText = mainText;

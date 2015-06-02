@@ -151,7 +151,8 @@ public class MainListActivity extends Activity
 		private String[] urlList;
     	//InputMethodManager input;
 		
-		@SuppressLint("InflateParams") @Override
+		@SuppressLint("InflateParams")
+		@Override
 		protected void onPreExecute()
 		{
 			//input = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -765,7 +766,7 @@ public class MainListActivity extends Activity
 		});
 	}
 	
-	public static void toUser2 (String userName)
+	public static void toUser2 (String userName)		//接收從ExAdapter傳來的值，並顯示出User2
 	{
 		user2.setVisibility(View.VISIBLE);
 		user2.setText(userName.trim());
