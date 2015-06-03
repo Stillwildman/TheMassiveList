@@ -478,8 +478,10 @@ public class MainListActivity extends Activity
     	int index = Math.max(textInput.getSelectionStart(), 0);
     	Log.i("EditText Index", "" + index);
     	
+    	if (index != 0)
+    		index ++;
     	sb = new StringBuilder(oriText);
-    	sb.insert(index, iconText);
+    	sb.insert(index, iconText).append(" ");
     	
     	if (iconText.contains("http://") || iconText.contains("https://"))
     	{
