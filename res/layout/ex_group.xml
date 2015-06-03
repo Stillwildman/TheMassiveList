@@ -50,6 +50,7 @@
         android:layout_below="@+id/groupText_User1"
         android:layout_marginBottom="10dp"
         android:layout_marginLeft="20dp"
+        android:layout_marginRight="15dp"
         android:layout_toRightOf="@+id/Image1"
         android:background="@drawable/press_style01"
         android:textSize="15sp" />

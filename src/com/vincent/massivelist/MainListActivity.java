@@ -37,13 +37,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnKeyListener;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
-import android.widget.ExpandableListView.OnGroupClickListener;
 import android.widget.ExpandableListView.OnGroupExpandListener;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -163,7 +161,7 @@ public class MainListActivity extends Activity
 			listChild = new ArrayList<List<Map<String, String>>>();
 			
 			LayoutInflater inflater = getLayoutInflater();
-			View view = inflater.inflate(R.layout.dialog_layout, null);
+			View view = inflater.inflate(R.layout.dialog_loading_layout, null);
 			dialog = new Dialog(MainListActivity.this);
 			loadingText = (TextView) view.findViewById(R.id.loadingText);
 			dialog.setContentView(view);
@@ -262,25 +260,13 @@ public class MainListActivity extends Activity
 		protected void onPostExecute(Void result)
 		{
 			exAdapter = new ExAdapter(MainListActivity.this, listGroup, listChild, urlList);
+			
 			if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR2)
 				exList.setIndicatorBounds(exList.getRight()-40, exList.getWidth());
 			else
 				exList.setIndicatorBoundsRelative(exList.getRight()-40, exList.getWidth());
 			
 			exList.setAdapter(exAdapter);
-			Log.w("ExListFocus",""+exList.hasFocusable());
-			
-			exList.setOnGroupClickListener(new OnGroupClickListener() {
-				@Override
-				public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
-					TextView mainText = (TextView) v.findViewById(R.id.groupText);
-					parent.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
-					mainText.setTextIsSelectable(true);
-					mainText.requestFocus();
-					return false;
-				}
-			});
-			
 			exAdapter.setUserAndTextChanged("", "", false);
 			dialog.dismiss();
 	    	//input.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);

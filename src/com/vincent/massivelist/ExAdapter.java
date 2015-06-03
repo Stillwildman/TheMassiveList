@@ -8,29 +8,35 @@ import java.util.Random;
 
 import com.vincent.massivelist.LinkTextView.LinkTextViewMovementMethod;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Html;
-import android.text.Layout;
-import android.text.Selection;
 import android.text.Spanned;
 import android.text.util.Linkify;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.ActionMode.Callback;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -62,9 +68,10 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	private ArrayList<String> ranHtmlColorList;
 	private ArrayList<Integer> ranHtmlIconList;
 	
-	private String toUserText;
-	private String changedText;
+	private String toUserText = "";
+	private String changedText = "";
 	private boolean textChanged;
+	private HashMap<String, Integer> userValueMap;
 	
 	public ExAdapter(Context context, List<Map<String, String>> listGroup,List<List<Map<String, String>>> listChild, String[] urlList)
 	{
@@ -93,7 +100,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		ranHtmlIconList = new ArrayList<Integer>();
 		setRanHtmlAtDivisible(5);
 		
-		
+		setUserValueMap();
 	}
 
 	@Override
@@ -221,13 +228,9 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		holder.image.setTag(url_array[ranUrlNumList.get(groupPosition)]);
 		holder.image.setOnClickListener(imgClick);
 		
-		//holder.mainText.setFocusable(false);
-		//holder.mainText.setFocusableInTouchMode(false);
-		//holder.mainText.setClickable(true);
 		holder.mainText.setLongClickable(true);
 		holder.mainText.setTag(holder.mainText.getText().toString());
 		holder.mainText.setOnLongClickListener(longClick);
-		//holder.mainText.setTextIsSelectable(true);
 		holder.mainText.setAutoLinkMask(Linkify.ALL);		//手動設定LinkMask，但在這裡設的話，它只會幫你標線，不會有點擊事件！
 		holder.mainText.setMovementMethod(LinkTextViewMovementMethod.getInstance());	//因此要再 setMovementMethod 給它，
 																					//這裡指定給我們客製化的 LinkTextView ~ 
@@ -548,34 +551,177 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	};
 	
 	OnLongClickListener longClick = new OnLongClickListener() {
-		@SuppressWarnings("deprecation")
 		@Override
 		public boolean onLongClick(View v) {
-			//((MainListActivity) context).shortMessage("You Got Me~");
-			//ClipboardManager cliper = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-			//cliper.setText(v.getTag().toString());
 			LinkTextView.LinkTextViewMovementMethod.cancelMotion();
 			
+			final String mainText = v.getTag().toString();
+			String[] items = {"複製內文", "選取文字"};
 			
-			/*
-			EditText widget = (EditText) v.getTag();
-			Layout layout = widget.getLayout();
-			int off;
-			int line = 0;
+			AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
+			dialogBuilder.setItems(items, new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					switch (which)
+					{
+					case 0:
+						ClipboardManager clipBoard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+						ClipData cliper = ClipData.newPlainText("TheSeletedAll", mainText);
+						clipBoard.setPrimaryClip(cliper);
+						((MainListActivity) context).shortMessage("Text Copied!");
+						break;
+					case 1:
+						showTextSelectDialog(mainText);
+						break;
+					}
+				}
+			});
+			AlertDialog dialog = dialogBuilder.create();
+			dialog.setCanceledOnTouchOutside(true);
+			dialog.show();
 			
-			line = layout.getLineForVertical(widget.getScrollY() + (int) v.getY());
-			off = layout.getOffsetForHorizontal(line, (int) v.getX());
-			Selection.setSelection(widget.getEditableText(), off);
-			*/
 			return false;
 		}
 	};
+	
+	@SuppressWarnings("deprecation")
+	@SuppressLint("InflateParams")
+	public void showTextSelectDialog(String mainText)
+	{
+		View view = inflater.inflate(R.layout.dialog_text_selection, null);
+		
+		final EditText textSelector = (EditText) view.findViewById(R.id.TextSelection);
+		textSelector.setText(parser.addIconSpans(mainText, imgMap));
+		textSelector.setTextIsSelectable(true);
+		textSelector.selectAll();
+		/*
+		textSelector.setOnTouchListener(new OnTouchListener() {
+			@SuppressLint("ClickableViewAccessibility")
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				int action = event.getAction();
+				Layout layout = textSelector.getLayout();
+				int line = 0;
+				int off = 0;
+				switch (action)
+				{
+				case MotionEvent.ACTION_DOWN:
+					line = layout.getLineForVertical(textSelector.getScrollY() + (int) event.getY());
+					off = layout.getOffsetForHorizontal(line, (int) event.getX());
+					Selection.setSelection(textSelector.getEditableText(), off);
+					break;
+				case MotionEvent.ACTION_MOVE:
+				case MotionEvent.ACTION_UP:
+					line = layout.getLineForVertical(textSelector.getScrollY() + (int) event.getY());
+					int curOff = layout.getOffsetForHorizontal(line, (int) event.getX());
+					Selection.setSelection(textSelector.getEditableText(), off, curOff);
+					break;
+				}
+				return false;
+			}
+		});
+		*/
+		textSelector.setCustomSelectionActionModeCallback(new Callback() {
+			@Override
+			public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+				// Called when action mode is first created. The menu supplied
+				// will be used to generate action buttons for the action mode.
+				mode.setTitle("Make Selection!");
+				menu.add(0, 1, 0, "Copy That!").setIcon(R.drawable.copy_icon);
+				return true;
+			}
+			@Override
+			public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+				menu.removeItem(android.R.id.selectAll);
+				menu.removeItem(android.R.id.cut);
+				menu.removeItem(android.R.id.copy);
+				menu.removeItem(android.R.id.paste);
+				return true;
+			}
+			@Override
+			public void onDestroyActionMode(ActionMode mode) {
+				// Called when an action mode is about to be exited and destroyed.
+			}
+			@Override
+			public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+				switch (item.getItemId()) {
+				case 1:
+					int start = textSelector.getSelectionStart();
+					int end = textSelector.getSelectionEnd();
+					String selectedText = textSelector.getText().toString().substring(start, end);
+					
+					ClipboardManager clipBoard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+					ClipData cliper = ClipData.newPlainText("TheSelected", selectedText);
+					clipBoard.setPrimaryClip(cliper);
+					((MainListActivity) context).shortMessage("Text Copied!");
+					return true;
+				default:
+					break;
+				}
+				return false;
+			}
+		});
+		WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+		int screenWidth = wm.getDefaultDisplay().getWidth();
+		int screenHeight = wm.getDefaultDisplay().getHeight();
+		int windowWidth = (int) (screenWidth / 1.2);
+		int windowHeight = (int) (screenHeight / 1.6);
+		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams
+				(windowWidth, windowHeight, Gravity.CENTER_VERTICAL);
+		textSelector.setLayoutParams(params);
+		
+		AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(context);
+		dialogBuilder.setView(view);
+		dialogBuilder.setPositiveButton("Done!", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) { }
+		});
+		dialogBuilder.setNegativeButton("Select All", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) { }
+		});
+		dialogBuilder.setNeutralButton("Copy!", new DialogInterface.OnClickListener() {
+			@Override
+			public void onClick(DialogInterface dialog, int which) { }
+		});
+		AlertDialog dialog = dialogBuilder.create();
+		
+		Window dialogWindow = dialog.getWindow();
+		WindowManager.LayoutParams windowParams = dialogWindow.getAttributes();
+		windowParams.alpha = 0.9f;
+		dialog.setCanceledOnTouchOutside(false);
+		dialog.show();
+		
+		dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				textSelector.selectAll();
+			}
+		});
+		dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				int start = textSelector.getSelectionStart();
+				int end = textSelector.getSelectionEnd();
+				String selectedText = textSelector.getText().toString().substring(start, end);
+				ClipboardManager clipBoard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+				ClipData cliper = ClipData.newPlainText("TheSelected", selectedText);
+				clipBoard.setPrimaryClip(cliper);
+				((MainListActivity) context).shortMessage("Text Copied!");
+			}
+		});
+	}
 	
 	OnClickListener userClick = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
 			String text = v.getTag().toString();
 			MainListActivity.toUser2(text);
+			
+			int userId = userValueMap.get(text);
+			EditText textInput = (EditText) ((MainListActivity) context).findViewById(R.id.textInput);
+			textInput.setText(String.valueOf(userId));
+			((MainListActivity) context).shortMessage("" + userId);
 		}
 	};
 	
@@ -584,6 +730,11 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		public void onClick(View v) {
 			String text = v.getTag().toString();
 			MainListActivity.toUser2(text);
+			
+			int userId = userValueMap.get(text);
+			EditText textInput = (EditText) ((MainListActivity) context).findViewById(R.id.textInput);
+			textInput.setText(String.valueOf(userId));
+			((MainListActivity) context).shortMessage("" + userId);
 		}
 	};
 	
@@ -605,5 +756,17 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		changedText = mainText;
 		textChanged = changed;
 		notifyDataSetChanged();
+	}
+	
+	private void setUserValueMap()
+	{
+		userValueMap = new HashMap<String, Integer>();
+		
+		for (Map<String, String> userMap: listGroup)
+		{
+			String userName = userMap.get("groupNumber");
+			int userRanId = ran.nextInt(getGroupCount()) + 101;
+			userValueMap.put(userName, userRanId);
+		}
 	}
 }

@@ -53,13 +53,6 @@
         android:layout_height="1dp"
         android:background="#000000" />
 
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textIsSelectable="true"
-        android:text="XDDDDDDDDDDDD" />
-
     <ExpandableListView
         android:id="@+id/sampleExList"
         android:layout_width="match_parent"
