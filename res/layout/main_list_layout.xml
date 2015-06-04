@@ -3,6 +3,7 @@
     android:id="@+id/LinearLayout1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
     android:focusable="true"
     android:focusableInTouchMode="true"
     android:orientation="vertical" >
@@ -47,6 +48,33 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/addUserLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:visibility="gone" >
+
+        <EditText
+            android:id="@+id/userNameInput"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:ems="10"
+            android:inputType="textPersonName" />
+
+        <ImageButton
+            android:id="@+id/confirmBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:onClick="userAddClick"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_input_add" />
+
+    </LinearLayout>
+
     <View
         android:id="@+id/Line1"
         android:layout_width="fill_parent"
@@ -59,7 +87,8 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:divider="@color/SteelBlue"
-        android:dividerHeight="2dp" >
+        android:stackFromBottom="true"
+        android:transcriptMode="normal" >
 
     </ExpandableListView>
     
@@ -119,18 +148,13 @@
                 android:onClick="showIconClick"
                 android:src="@android:drawable/ic_menu_add" />
 
-            <TextView
-                android:id="@+id/userText"
+            <Spinner
+                android:id="@+id/userSpinner"
                 android:layout_width="wrap_content"
-                android:layout_height="40dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
                 android:layout_weight="0"
-                android:background="@drawable/button_style01"
-                android:clickable="true"
-                android:gravity="center"
-                android:textColor="@android:color/white"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:visibility="gone" />
+                android:gravity="center" />
 
             <EditText
                 android:id="@+id/textInput"

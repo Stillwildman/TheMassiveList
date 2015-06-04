@@ -40,6 +40,7 @@ import android.view.View.OnKeyListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.ExpandableListView.OnGroupExpandListener;
@@ -48,6 +49,7 @@ import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
@@ -58,14 +60,14 @@ public class MainListActivity extends Activity
 	private ExAdapter exAdapter;
 	
 	private EditText textInput;
-	private static TextView user2;
+	private static Spinner userSpinner;
 	
 	private EditText numberInput;
 	
-	private List<Map<String, String>> listGroup;
+	private List<Map<Integer, String[]>> listGroup;
 	private List<List<Map<String, String>>> listChild;
 	
-	private String defualtNum = "500";
+	private String defualtNum = "3";
 	private String inputNum = "";
 	private String input = "";
 	private StringBuilder sb;
@@ -79,6 +81,8 @@ public class MainListActivity extends Activity
 	private ProgressBar loading;
 	private HashMap<String, Bitmap> setIconMap;
 	
+	private Random ran;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -89,15 +93,14 @@ public class MainListActivity extends Activity
 		
 		exList = (ExpandableListView) findViewById(R.id.sampleExList);
 		
-		final String testingText = getResources().getString(R.string.TestingText);
-		new createAsyncList().execute(defualtNum, testingText);
+		new createAsyncList().execute(defualtNum);
 		
 		textInput = (EditText) findViewById(R.id.textInput);
 		textInput.setFocusable(true);
 		textInput.setFocusableInTouchMode(true);
 		textInput.setOnKeyListener(goKey);
 		
-		user2 = (TextView) findViewById(R.id.userText);
+		userSpinner = (Spinner) findViewById(R.id.userSpinner);
 		
 		numberInput = (EditText) findViewById(R.id.numberInput);
 		numberInput.setFocusable(true);
@@ -110,21 +113,20 @@ public class MainListActivity extends Activity
 				if (input.isEmpty())
 				{
 					if (numberInput.getText().toString().isEmpty())
-						new createAsyncList().execute(defualtNum, testingText);
+						new createAsyncList().execute(defualtNum);
 					else {
 						inputNum = String.valueOf(number.toString());
-						new createAsyncList().execute(inputNum, testingText);
+						new createAsyncList().execute(inputNum);
 					}
 				} else
 				{
 					if (numberInput.getText().toString().isEmpty())
-						new createAsyncList().execute(defualtNum, input);
+						new createAsyncList().execute(defualtNum);
 					else {
 						inputNum = String.valueOf(number.toString());
-						new createAsyncList().execute(inputNum, input);
+						new createAsyncList().execute(inputNum);
 					}
 				}
-				user2.setVisibility(View.GONE);
 				return false;
 			}
 		});
@@ -145,19 +147,16 @@ public class MainListActivity extends Activity
 	class createAsyncList extends AsyncTask<String, Integer, Void>
 	{
 		private int count;
-		private String text;
 		
 		private Dialog dialog;
 		private TextView loadingText;
 		private String[] urlList;
-    	//InputMethodManager input;
 		
 		@SuppressLint("InflateParams")
 		@Override
 		protected void onPreExecute()
 		{
-			//input = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-			listGroup = new ArrayList<Map<String, String>>();
+			listGroup = new ArrayList<Map<Integer, String[]>>();
 			listChild = new ArrayList<List<Map<String, String>>>();
 			
 			LayoutInflater inflater = getLayoutInflater();
@@ -172,94 +171,38 @@ public class MainListActivity extends Activity
     		WindowManager.LayoutParams windowParams = dialogWindow.getAttributes();
     		windowParams.alpha = 0.9f;
     		dialog.show();
+    		
+    		ran = new Random();
 		}
 		
 		@Override
 		protected Void doInBackground(String... params)
 		{
-			/*
-			GetStringByUrl urlString = new GetStringByUrl(getString(R.string.ImageUrl));	//從Testing server上取得Image URL的清單
-			String[] urlTempString = urlString.getString().split(",");		//URL清單中的每個檔名，是以","做區隔，所以在這裡將他分割為Array
-			StringBuilder urlSb;
-			ArrayList<String> urlTempList = new ArrayList<String>();
-			for (String s: urlTempString)
-			{
-				urlSb = new StringBuilder(s);
-				urlSb.insert(0, "http://60.199.201.66/");		//上面獲得的檔名為 images/(fileName)，因此在前面再加上Server的路徑~
-				urlTempList.add(urlSb.toString());
-			}
-			urlTempString = new String[urlTempList.size()];		//將 ArrayList 轉為 String[]
-			urlList = urlTempList.toArray(urlTempString);
-			*/
 			urlList = getResources().getStringArray(R.array.url_array);
-			
 			count = Integer.parseInt(params[0]);
-			text = params[1];
 
-			/*--------------從這裡--------------------------一直到------------------------ */
-
-			ArrayList<Integer> ranNumList = new ArrayList<Integer>();		//用來儲存 ranNum
-			ArrayList<Integer> ranMultiList = new ArrayList<Integer>();		//用來儲存 ranMulti
+			int uid;
+			String userName;
+			int gender;
+			String userImg;
 			
-			int ranCount = (int) (count * 0.1);								//新增一個int，值為總行數(count)的10分之1
-			Random ran = new Random();
-			StringBuilder sb;
-
-			for (int i = 0; i < ranCount; i++)			//產生"ranCount"個的亂數
-			{
-				int ranNum = ran.nextInt(count)+1;			//亂數範圍為1~count
-				int ranMulti = ran.nextInt(16)+5;			//產生5~20的亂數，用來決定sb要加幾倍
-				Log.i("ranNumber",""+ranNum);
-				Log.i("ranMultiple",""+ranMulti);
-
-				ranNumList.add(ranNum);
-				ranMultiList.add(ranMulti);
-			}
-
-			for (int i = 1; i <= count; i++)
+			for (int i = 0; i < count; i++)
 			{
 				publishProgress(Integer.valueOf(i));
-				
-				Map<String, String> listGroupItem = new HashMap<String, String>();
-
-				listGroupItem.put("groupSample", text);		//正常put進固定的內容
-				listGroupItem.put("groupNumber", "User "+i);
-
-				for (int j = 0; j < ranCount; j++)						//從這裡開始run "ranCount" 次的迴圈
-				{
-					if (i == ranNumList.get(j))							//如果該次的 i 等於ranNumList其中一個數字的話...
-					{													//由於 i 是從 1 開始去run，所以一定是從ranNumList中最小的值開始抓到
-						sb = new StringBuilder();
-						//Log.i("ranNumberList",""+ranNumList.get(j));	//把該次比對到的值Log出來，從最小到最大...
-																		//所以在這裡也順便給 ranNumList 給做了排序...
-																		//意外發現 Bubble Sort 之外的另一個排序法阿！
-						for (int k = 0; k < ranMultiList.get(j); k++)
-						{
-							sb.append("This is the Chosen One! ");		//看該次的ranMultiList的值是多少，就run幾次
-						}
-						//sb.insert(sb.length()/2, urlList[ran.nextInt(urlList.length)]);
-						
-						listGroupItem.put("groupSample", sb.toString());	//把該次的內容put進hashMap裡，覆蓋原本put的值
-					}
-				}
-				listGroup.add(listGroupItem);
-
-				/*----------到這裡，來給在既有的Group數量下，產生一定比例的亂數(挑出10分之1個)，
-				 * 然後被選中的那幾個，再依ranMultiList中的值，給與指定倍數的成長！-----------I'm fucking Brilliant!-----*/
-
-				List<Map<String, String>> listChildItems = new ArrayList<Map<String, String>>();
-				Map<String, String> listChildItem = new HashMap<String, String>();
-
-				listChildItem.put("childSample", "www.google.com\t" + i + "\nbrack@gmail.com\t\n+903345678\t");
-				listChildItems.add(listChildItem);
-				listChild.add(listChildItems);
+				uid = i;
+				Log.i("UID", ""+uid);
+				userName = "User " + i;
+				gender = ran.nextInt(1);
+				userImg = urlList[ran.nextInt(urlList.length)];
+				UsersData.addUserIdAndData(uid, userName, gender, userImg);
 			}
+			
 			ThreadLogUtils.logThread();
 			return null;
 		}
 		protected void onPostExecute(Void result)
 		{
-			exAdapter = new ExAdapter(MainListActivity.this, listGroup, listChild, urlList);
+			exAdapter = new ExAdapter(MainListActivity.this, listGroup, listChild);
 			
 			if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR2)
 				exList.setIndicatorBounds(exList.getRight()-40, exList.getWidth());
@@ -269,7 +212,7 @@ public class MainListActivity extends Activity
 			exList.setAdapter(exAdapter);
 			exAdapter.setUserAndTextChanged("", "", false);
 			dialog.dismiss();
-	    	//input.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+			setUserSpinner();
 		}
 		protected void onProgressUpdate(Integer...status)
 		{
@@ -312,39 +255,18 @@ public class MainListActivity extends Activity
 	
 	public void sendClick(View view)
 	{
-		InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+		ran = new Random();
 		input = textInput.getText().toString();
 		
-		if (!user2.isShown())
-		{
-			if (!input.isEmpty())										//判斷 textInput 不是空的話，就顯示來自使用者的input
-			{
-				exAdapter.setUserAndTextChanged("", input, true);
-				/*
-				if (inputNum.isEmpty())
-					new createAsyncList().execute(defualtNum, input);
-				else
-					new createAsyncList().execute(inputNum, input);
-				*/
-			} else														//否則就顯示預設的 TestingText
-			{
-				exAdapter.setUserAndTextChanged("", getString(R.string.TestingText), true);
-				/*
-				if (inputNum.isEmpty())
-					new createAsyncList().execute(defualtNum, getResources().getString(R.string.TestingText));
-				else
-					new createAsyncList().execute(inputNum, getResources().getString(R.string.TestingText));
-				*/
-			}
-		} else
-		{
-			if (!input.isEmpty())
-				exAdapter.setUserAndTextChanged(user2.getText().toString(), input, true);
-			else
-				exAdapter.setUserAndTextChanged(user2.getText().toString(), getString(R.string.TestingText), true);
-		}
+		int ranIDcount = ran.nextInt(UsersData.getCount());
+		exAdapter.addListGroupItems(UsersData.getUserMap(ranIDcount), ranIDcount);
+
+		if (!input.isEmpty())										//判斷 textInput 不是空的話，就顯示來自使用者的input
+			exAdapter.addMainText(input);
+		else	
+			exAdapter.addMainText(getString(R.string.TestingText));
+		
 		textInput.setText("");
-		imm.hideSoftInputFromWindow(view.getApplicationWindowToken(),0);
 	}
 	
 	OnKeyListener goKey = new OnKeyListener() {					//監聽軟體鍵盤上的動作！
@@ -478,9 +400,9 @@ public class MainListActivity extends Activity
     	int index = Math.max(textInput.getSelectionStart(), 0);
     	Log.i("EditText Index", "" + index);
     	
+    	sb = new StringBuilder(oriText);
     	if (index != 0)
     		index ++;
-    	sb = new StringBuilder(oriText);
     	sb.insert(index, iconText).append(" ");
     	
     	if (iconText.contains("http://") || iconText.contains("https://"))
@@ -572,16 +494,10 @@ public class MainListActivity extends Activity
     		for (File img: imgCount)
     		{
     			imgFullName = img.getName();	//完整檔案名稱，包含副檔名
-    			/*
-    			imgNameSb = new StringBuilder(imgFullName).insert(imgFullName.lastIndexOf("%2F")+3, "/")
-    					.insert(imgFullName.lastIndexOf(".")+1, "/");	//修改Image的檔名~
-    			imgName = imgNameSb.substring(imgNameSb.lastIndexOf("%2F")+3, imgNameSb.lastIndexOf("."))
-    					.replace("%2B", "+");	//新的 image name，含 /../ 不含副檔名
-    			*/
     			imgName = imgFullName.replace("%3A", ":").replace("%2F", "/").replace("%2B", "+");
     			
-    			Log.i("imgName", imgName);
-    			Log.i("imgFullName", imgFullName);
+    			//Log.i("imgName", imgName);
+    			//Log.i("imgFullName", imgFullName);
 
     			imageNameList.add(createStringArr(imgName, imgFullName)); //將 已修改過的檔名[0] & 完整檔名[1] add 進 imageNameList 中！
     		}
@@ -767,10 +683,9 @@ public class MainListActivity extends Activity
 			}
 		});
 	}
-	
+	/*
 	public static void toUser2 (String userName)		//接收從ExAdapter傳來的值，並顯示出User2
 	{
-		user2.setVisibility(View.VISIBLE);
 		user2.setText(userName.trim());
 		user2.setOnClickListener(new OnClickListener() {
 			@Override
@@ -779,7 +694,49 @@ public class MainListActivity extends Activity
 			}
 		});
 	}
-    
+	*/
+	private void setUserSpinner()
+	{
+		Integer[] IdArr = UsersData.getUidArr();
+		String[] userArr = UsersData.getUserNameArr();
+		sb = new StringBuilder();
+		for (int i = 0; i < IdArr.length; i++) {
+			sb.append(IdArr[i]).append(" - ").append(userArr[i]).append(",");
+		}
+		String[] userDataArr = sb.toString().split(",");
+		
+		ArrayAdapter<String> arrAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, userDataArr);
+		arrAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		userSpinner.setAdapter(arrAdapter);
+	}
+    /*
+	public void scrollToButtom()
+	{
+		exList.post(new Runnable() {
+			@Override
+			public void run() {
+				exList.setSelectedGroup(exAdapter.getGroupCount()-1);
+			}
+		});
+	}
+	*/
+	
+	public void userAddClick(View view)
+	{
+		EditText addInput = (EditText) findViewById(R.id.userNameInput);
+		String userName = addInput.getText().toString();
+		addInput.setText("");
+		
+		int uid = UsersData.getCount();
+		int gender = ran.nextInt(1);
+		String[] urlList = getResources().getStringArray(R.array.url_array);
+		String userImgUrl = urlList[ran.nextInt(urlList.length)];
+		
+		UsersData.addUserIdAndData(uid, userName, gender, userImgUrl);
+		setUserSpinner();
+		shortMessage("User Added! Your ID is " + uid);
+	}
+	
 	public void shortMessage(String msg)
 	{
 		Toast.makeText(MainListActivity.this, msg, Toast.LENGTH_SHORT).show();
@@ -809,7 +766,11 @@ public class MainListActivity extends Activity
 			break;
 		
 		case R.id.menu_test:
-			//popImageWindow();
+			LinearLayout addUserLayout = (LinearLayout) findViewById(R.id.addUserLayout);
+			if (!addUserLayout.isShown())
+				addUserLayout.setVisibility(View.VISIBLE);
+			else
+				addUserLayout.setVisibility(View.GONE);
 			break;
 		}
 		return true;
