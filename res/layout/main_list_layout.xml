@@ -40,7 +40,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginRight="5dp"
-            android:layout_weight="1"
+            android:layout_weight="0"
             android:gravity="center"
             android:textAppearance="?android:attr/textAppearance"
             android:textColor="@color/LightBrown"
@@ -53,22 +53,22 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:gravity="center"
-        android:visibility="gone" >
+        android:gravity="center" >
 
         <EditText
             android:id="@+id/userNameInput"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="2"
+            android:layout_weight="1"
             android:ems="10"
+            android:hint="Add a User"
             android:inputType="textPersonName" />
 
         <ImageButton
             android:id="@+id/confirmBtn"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_weight="0"
             android:onClick="userAddClick"
             android:scaleType="centerCrop"
             android:src="@android:drawable/ic_input_add" />
@@ -143,7 +143,7 @@
                 android:id="@+id/showIconBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:layout_weight="1"
+                android:layout_weight="0"
                 android:background="@drawable/button_style03"
                 android:onClick="showIconClick"
                 android:src="@android:drawable/ic_menu_add" />
@@ -153,7 +153,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_gravity="center"
-                android:layout_weight="0"
+                android:layout_weight="2"
                 android:gravity="center" />
 
             <EditText
@@ -161,7 +161,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_weight="3"
+                android:layout_weight="2"
                 android:ems="10"
                 android:focusable="false"
                 android:focusableInTouchMode="false"
@@ -172,9 +172,9 @@
 
             <ImageButton
                 android:id="@+id/sendBtn"
-                android:layout_width="wrap_content"
+                android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_weight="1"
+                android:layout_weight="0"
                 android:onClick="sendClick"
                 android:scaleType="fitCenter"
                 android:src="@drawable/sand_icon" />

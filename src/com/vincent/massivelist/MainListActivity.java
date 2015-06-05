@@ -40,6 +40,8 @@ import android.view.View.OnKeyListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
@@ -54,6 +56,7 @@ import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
+@SuppressLint("DefaultLocale")
 public class MainListActivity extends Activity
 {
 	private ExpandableListView exList;
@@ -64,10 +67,10 @@ public class MainListActivity extends Activity
 	
 	private EditText numberInput;
 	
-	private List<Map<Integer, String[]>> listGroup;
+	private List<Map<String, String[]>> listGroup;
 	private List<List<Map<String, String>>> listChild;
 	
-	private String defualtNum = "3";
+	private String defualtNum = "5";
 	private String inputNum = "";
 	private String input = "";
 	private StringBuilder sb;
@@ -80,6 +83,7 @@ public class MainListActivity extends Activity
 	private boolean iconShown;
 	private ProgressBar loading;
 	private HashMap<String, Bitmap> setIconMap;
+	private String user2Id = "";
 	
 	private Random ran;
 	
@@ -156,7 +160,7 @@ public class MainListActivity extends Activity
 		@Override
 		protected void onPreExecute()
 		{
-			listGroup = new ArrayList<Map<Integer, String[]>>();
+			listGroup = new ArrayList<Map<String, String[]>>();
 			listChild = new ArrayList<List<Map<String, String>>>();
 			
 			LayoutInflater inflater = getLayoutInflater();
@@ -181,7 +185,7 @@ public class MainListActivity extends Activity
 			urlList = getResources().getStringArray(R.array.url_array);
 			count = Integer.parseInt(params[0]);
 
-			int uid;
+			String uid;
 			String userName;
 			int gender;
 			String userImg;
@@ -189,10 +193,9 @@ public class MainListActivity extends Activity
 			for (int i = 0; i < count; i++)
 			{
 				publishProgress(Integer.valueOf(i));
-				uid = i;
-				Log.i("UID", ""+uid);
-				userName = "User " + i;
-				gender = ran.nextInt(1);
+				uid = String.format("%02d", i);
+				userName = "User" + i;
+				gender = ran.nextInt(2);
 				userImg = urlList[ran.nextInt(urlList.length)];
 				UsersData.addUserIdAndData(uid, userName, gender, userImg);
 			}
@@ -210,7 +213,6 @@ public class MainListActivity extends Activity
 				exList.setIndicatorBoundsRelative(exList.getRight()-40, exList.getWidth());
 			
 			exList.setAdapter(exAdapter);
-			exAdapter.setUserAndTextChanged("", "", false);
 			dialog.dismiss();
 			setUserSpinner();
 		}
@@ -255,17 +257,30 @@ public class MainListActivity extends Activity
 	
 	public void sendClick(View view)
 	{
-		ran = new Random();
+		//ran = new Random();
+		//String ranIDcount = UsersData.getUID(ran.nextInt(UsersData.getCount()));
+		String userID = UsersData.getUID(userSpinner.getSelectedItemPosition());
+		
+		String toUserText = "";
 		input = textInput.getText().toString();
-		
-		int ranIDcount = ran.nextInt(UsersData.getCount());
-		exAdapter.addListGroupItems(UsersData.getUserMap(ranIDcount), ranIDcount);
+		if (input.indexOf("@") == 0)
+		{
+			toUserText = input.substring(1, input.indexOf(" "));
+			if (UsersData.isUserExists(toUserText))
+				input = input.substring(input.indexOf(" "));
+		}
+		exAdapter.addListGroupItems(UsersData.getUserMap(userID), userID);
+		exAdapter.addUser2Id(user2Id);
 
-		if (!input.isEmpty())										//判斷 textInput 不是空的話，就顯示來自使用者的input
+		if (!input.isEmpty()) {					//判斷 textInput 不是空的話，就顯示來自使用者的input
 			exAdapter.addMainText(input);
-		else	
+			exAdapter.addUser2Text(toUserText);
+		}
+		else {
 			exAdapter.addMainText(getString(R.string.TestingText));
-		
+			exAdapter.addUser2Text(toUserText);
+		}
+		user2Id = new String();
 		textInput.setText("");
 	}
 	
@@ -401,9 +416,7 @@ public class MainListActivity extends Activity
     	Log.i("EditText Index", "" + index);
     	
     	sb = new StringBuilder(oriText);
-    	if (index != 0)
-    		index ++;
-    	sb.insert(index, iconText).append(" ");
+    	sb.insert(index, " " + iconText + " ");
     	
     	if (iconText.contains("http://") || iconText.contains("https://"))
     	{
@@ -412,7 +425,7 @@ public class MainListActivity extends Activity
     		textInput.setText(parser.addIconSpans(sb.toString(), setIconMap));
     	} else
     		textInput.setText(parser.addIconSpans(sb.toString(), setIconMap));
-    	textInput.setSelection(index + iconText.length());
+    	textInput.setSelection(index + iconText.length()+2);
     }
     
     public HashMap<String, Integer> getSmileyMap()		//要丟給 SmileysParser 吃，所以要產生 HashMap
@@ -683,31 +696,39 @@ public class MainListActivity extends Activity
 			}
 		});
 	}
-	/*
-	public static void toUser2 (String userName)		//接收從ExAdapter傳來的值，並顯示出User2
+	
+	public void toUser2 (String userID)		//接收從ExAdapter傳來的值，並顯示出User2
 	{
-		user2.setText(userName.trim());
-		user2.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				user2.setVisibility(View.GONE);
-			}
-		});
+		Map<String, String[]> user2Map = UsersData.getUserMap(userID);
+		String[] userData = user2Map.get(userID);
+		user2Id = userID;
+		textInput.setText("@" + userData[0] + " ");
+		textInput.setSelection(textInput.getText().length());
 	}
-	*/
+	
 	private void setUserSpinner()
 	{
-		Integer[] IdArr = UsersData.getUidArr();
+		String[] IdArr = UsersData.getUidArr();
 		String[] userArr = UsersData.getUserNameArr();
 		sb = new StringBuilder();
 		for (int i = 0; i < IdArr.length; i++) {
-			sb.append(IdArr[i]).append(" - ").append(userArr[i]).append(",");
+			sb.append(IdArr[i]).append("-").append(userArr[i]).append(",");
 		}
 		String[] userDataArr = sb.toString().split(",");
 		
 		ArrayAdapter<String> arrAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, userDataArr);
 		arrAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		userSpinner.setAdapter(arrAdapter);
+		
+		userSpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+			@Override
+			public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+				String userID = UsersData.getUID(position);
+				exAdapter.setCurrentID(userID);
+			}
+			@Override
+			public void onNothingSelected(AdapterView<?> parent) { }
+		});
 	}
     /*
 	public void scrollToButtom()
@@ -724,17 +745,21 @@ public class MainListActivity extends Activity
 	public void userAddClick(View view)
 	{
 		EditText addInput = (EditText) findViewById(R.id.userNameInput);
-		String userName = addInput.getText().toString();
-		addInput.setText("");
-		
-		int uid = UsersData.getCount();
-		int gender = ran.nextInt(1);
-		String[] urlList = getResources().getStringArray(R.array.url_array);
-		String userImgUrl = urlList[ran.nextInt(urlList.length)];
-		
-		UsersData.addUserIdAndData(uid, userName, gender, userImgUrl);
-		setUserSpinner();
-		shortMessage("User Added! Your ID is " + uid);
+		String userName = addInput.getText().toString().replace(" ", "");
+		if (!userName.isEmpty())
+		{
+			addInput.setText("");
+			
+			String uid = String.format("%02d", UsersData.getCount());
+			int gender = ran.nextInt(2);
+			String[] urlList = getResources().getStringArray(R.array.url_array);
+			String userImgUrl = urlList[ran.nextInt(urlList.length)];
+			
+			UsersData.addUserIdAndData(uid, userName, gender, userImgUrl);
+			setUserSpinner();
+			shortMessage("User Added! Your ID is " + uid);
+		} else
+			shortMessage("(ˊ_>ˋ)");
 	}
 	
 	public void shortMessage(String msg)

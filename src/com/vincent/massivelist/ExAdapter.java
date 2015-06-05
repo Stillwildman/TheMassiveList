@@ -44,7 +44,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	
 	private Context context;
 	private LayoutInflater inflater;
-	private List<Map<Integer, String[]>> listGroup;
+	private List<Map<String, String[]>> listGroup;
 	private List<List<Map<String, String>>> listChild;
 	
 	private Random ran;
@@ -55,20 +55,24 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	
 	ImageLoader imageLoader;
 	
-	private String user2Text;
-	private String changedText;
-	private boolean textChanged;
-	
 	private ArrayList<String> mainTextList;
-	private String groupText;
-	private String[] groupUserData;
-	private int userId;
-	private String userName;
-	private String userGender;
-	private String userImgUrl;
-	private ArrayList<Integer> IDList;
+	private String mainText;
+	private String[] groupUserData1;
+	private String[] groupUserData2;
+	private ArrayList<String> user2List;
+	private String user1Id;
+	private String user2Id;
+	private String user1Name;
+	private String user2Name;
+	private String user1Gender;
+	private String user2Gender = "";
+	private String user1ImgUrl;
+	private ArrayList<String> ID1List;
+	private ArrayList<String> ID2List;
 	
-	public ExAdapter(Context context, List<Map<Integer, String[]>> listGroup,List<List<Map<String, String>>> listChild)
+	private String currentID = "00";
+	
+	public ExAdapter(Context context, List<Map<String, String[]>> listGroup, List<List<Map<String, String>>> listChild)
 	{
 		this.context = context;
 		this.listGroup = listGroup;
@@ -82,7 +86,9 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		parser = SmileysParser.getInstance();
 		
 		mainTextList = new ArrayList<String>();
-		IDList = new ArrayList<Integer>();
+		ID1List = new ArrayList<String>();
+		ID2List = new ArrayList<String>();
+		user2List = new ArrayList<String>();
 	}
 
 	@Override
@@ -126,21 +132,30 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		
 		if (!mainTextList.isEmpty())
-			groupText = mainTextList.get(groupPosition);
+			mainText = mainTextList.get(groupPosition);
 		
 		if (!listGroup.isEmpty())
 		{
-			groupUserData = (String[]) listGroup.get(groupPosition).get(IDList.get(groupPosition));
-			userName = groupUserData[0];
-			userImgUrl = groupUserData[2];
+			user1Id = ID1List.get(groupPosition);
+			groupUserData1 = (String[]) listGroup.get(groupPosition).get(user1Id);
+			user1Name = groupUserData1[0];
+			user1Gender = groupUserData1[1];
+			user1ImgUrl = groupUserData1[2];
+			
+			user2Name = user2List.get(groupPosition);
+		}
+		if (!ID2List.get(groupPosition).isEmpty())
+		{
+			user2Id = ID2List.get(groupPosition);
+			groupUserData2 = (String[]) UsersData.getUserMap(user2Id).get(user2Id);
+			user2Name = groupUserData2[0];
+			user2Gender = groupUserData2[1];
 		}
 			
-		String groupNumber = "";
-		
 		try
 		{
-			if (!userImgUrl.isEmpty())
-				imageLoader.DisplayImage(userImgUrl, holder.image);
+			if (!user1ImgUrl.isEmpty())
+				imageLoader.DisplayImage(user1ImgUrl, holder.image);
 			RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams
 					(MainListActivity.getPixels(35), MainListActivity.getPixels(35));
 			params.setMargins(10, 10, 5, 0);
@@ -157,9 +172,9 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			notifyDataSetChanged();
 		}
 		
-		if (groupText.contains("http://") || groupText.contains("https://"))
+		if (mainText.contains("http://") || mainText.contains("https://"))
 		{
-			List<String> imgUrlList = getImgUrlString(groupText);
+			List<String> imgUrlList = getImgUrlString(mainText);
 			
 			for (String imgUrl: imgUrlList)
 			{
@@ -168,15 +183,15 @@ public class ExAdapter extends BaseExpandableListAdapter {
 					if (imgMap.containsKey(imgUrl))
 					{
 						try {
-							holder.mainText.setText(parser.addIconSpans(groupText, imgMap));
+							holder.mainText.setText(parser.addIconSpans(mainText, imgMap));
 						} catch (Exception e) {
-							holder.mainText.setText(parser.addWaitSpans(groupText, imgUrl.substring(imgUrl.lastIndexOf("."))));
+							holder.mainText.setText(parser.addWaitSpans(mainText, imgUrl.substring(imgUrl.lastIndexOf("."))));
 							((MainListActivity) context).shortMessage("Slow Down Please!");
 						}
 					}
 					else {
 						try {
-							holder.mainText.setText(parser.addWaitSpans(groupText, imgUrl));
+							holder.mainText.setText(parser.addWaitSpans(mainText, imgUrl));
 							downloadBitmapByUrl(imgUrl);
 							Log.i("ImageFile", "OH YEAH~~~~~~~~~~");
 						} catch (Exception e) {
@@ -185,19 +200,35 @@ public class ExAdapter extends BaseExpandableListAdapter {
 						}
 					}
 				} else {
-					holder.mainText.setText(parser.addIconSpans(groupText, imgMap));
+					holder.mainText.setText(parser.addIconSpans(mainText, imgMap));
 					Log.i("Input URL", "Unknow Image URL!!!!!!");
 				}
 			}
 		} else
-			holder.mainText.setText(parser.addIconSpans(groupText, null));
+			holder.mainText.setText(parser.addIconSpans(mainText, null));
 		
-		holder.userText1.setText(Html.fromHtml("<u>" + userName + "</u>"));
+		holder.mainText.setVisibility(View.VISIBLE);
+		if (mainText.length() == 1 && mainText.equals(" "))
+			holder.mainText.setVisibility(View.GONE);
+		
+		holder.userText1.setText(Html.fromHtml("<u>" + user1Name + "</u>"));
+		
+		holder.userText2.setVisibility(View.INVISIBLE);
+		holder.toText2.setVisibility(View.INVISIBLE);
+		holder.toText1.setText(":");
+		
+		if (!user2Name.isEmpty())			//如果 userName2 不是Empty，也就是有變動過的話...
+		{
+			holder.toText1.setText("-->");
+			holder.toText2.setVisibility(View.VISIBLE);
+			holder.userText2.setVisibility(View.VISIBLE);
+			holder.userText2.setText(Html.fromHtml("<u>" + user2Name + "</u>"));
+		}
 		
 		holder.image.setFocusable(false);
 		holder.image.setFocusableInTouchMode(false);
 		holder.image.setClickable(true);
-		holder.image.setTag(userImgUrl);
+		holder.image.setTag(user1ImgUrl);
 		holder.image.setOnClickListener(imgClick);
 		
 		holder.mainText.setLongClickable(true);
@@ -209,42 +240,26 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		holder.userText1.setFocusable(false);
 		holder.userText1.setFocusableInTouchMode(false);
 		holder.userText1.setClickable(true);
-		holder.userText1.setTag(holder.userText1.getText());
-		
-		//holder.userText1.setId();
-		
-		//holder.userText1.setOnClickListener(user1Click);
+		holder.userText1.setTag(user1Id);
+		holder.userText1.setOnClickListener(user1Click);
 		
 		holder.userText2.setFocusable(false);
 		holder.userText2.setFocusableInTouchMode(false);
 		holder.userText2.setClickable(true);
-		holder.userText2.setTag(holder.userText2.getText());
-		//holder.userText2.setOnClickListener(user2Click);
-		
-		if (!user2Text.isEmpty())			//如果 user2Text 不是Empty，也就是有變動過的話...
-		{
-			if (!user2Text.equals(groupNumber))		
-			{
-				holder.toText1.setText("-->");
-				holder.toText2.setVisibility(View.VISIBLE);
-				holder.userText2.setVisibility(View.VISIBLE);
-				holder.userText2.setText(Html.fromHtml("<u>" + user2Text + "</u>"));
-			} else {
-				holder.userText2.setVisibility(View.GONE);
-				holder.toText2.setVisibility(View.GONE);
-				holder.toText1.setText(":");
-				holder.mainText.setText("");
-			}
-		} else
-		{
-			holder.toText1.setText(":");
-			holder.toText2.setVisibility(View.GONE);
-			holder.userText2.setVisibility(View.GONE);
-		}
+		holder.userText2.setTag(user2Id);
+		holder.userText2.setOnClickListener(user2Click);
 		
 		holder.mainText.setTextColor(Color.BLACK);							//此處解釋請參照下面的convertView!
 		holder.userText1.setTextColor(Color.BLACK);
-		holder.userText1.setTextColor(Color.DKGRAY);
+		holder.userText2.setTextColor(Color.BLACK);
+		if (user1Gender.equals("0"))
+			holder.userText1.setTextColor(Color.BLUE);
+		if (user1Gender.equals("1"))
+			holder.userText1.setTextColor(Color.RED);
+		if (user2Gender.equals("0"))
+			holder.userText2.setTextColor(Color.BLUE);
+		if (user2Gender.equals("1"))
+			holder.userText2.setTextColor(Color.RED);
 		
 		convertView.setBackgroundColor(Color.WHITE);				//每次 View 到這裡都要先把Color設回White，再去判斷if
 		if (isDivisible(groupPosition, 50))						//不然根據ViewHolder Reuse view的特性，
@@ -272,18 +287,20 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		return childPosition;
 	}
 	
-	@SuppressLint("InflateParams") @Override
+	@SuppressWarnings("unchecked")
+	@SuppressLint("InflateParams")
+	@Override
 	public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent)
 	{
 		// TODO Auto-generated method stub
 		LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.ex_child, null);
 		
-		//TextView sampleText = (TextView) layout.findViewById(R.id.childText1);
+		TextView sampleText = (TextView) layout.findViewById(R.id.childText1);
 		
-		//String childText = ((Map<String, String>)getChild(groupPosition, childPosition)).get("childSample");
-		//sampleText.setText(childText);
-		//sampleText.setMovementMethod(LinkTextViewMovementMethod.getInstance());
+		String childText = ((Map<String, String>)getChild(groupPosition, childPosition)).get("childSample");
+		sampleText.setText(childText);
+		sampleText.setMovementMethod(LinkTextViewMovementMethod.getInstance());
 		
 		return layout;
 	}
@@ -579,31 +596,29 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			}
 		});
 	}
-	/*
+	
 	OnClickListener user1Click = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
-			String text = v.getTag().toString();
-			MainListActivity.toUser2(text);
-			
-			EditText textInput = (EditText) ((MainListActivity) context).findViewById(R.id.textInput);
-			textInput.setText(String.valueOf(userId));
-			((MainListActivity) context).shortMessage("" + userId);
+			String IDtext = v.getTag().toString();
+			if (IDtext.equals(currentID))
+				((MainListActivity) context).shortMessage("(ˋ_>ˊ)");
+			else
+				((MainListActivity) context).toUser2(IDtext);
 		}
 	};
 	
 	OnClickListener user2Click = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
-			String text = v.getTag().toString();
-			MainListActivity.toUser2(text);
-			
-			EditText textInput = (EditText) ((MainListActivity) context).findViewById(R.id.textInput);
-			textInput.setText(String.valueOf(userId));
-			((MainListActivity) context).shortMessage("" + userId);
+			String IDtext = v.getTag().toString();
+			if (IDtext.equals(currentID))
+				((MainListActivity) context).shortMessage("(ˋ_>ˊ)");
+			else
+				((MainListActivity) context).toUser2(IDtext);
 		}
 	};
-	*/
+	
 	OnClickListener imgClick = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
@@ -611,29 +626,48 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			((MainListActivity) context).popImageWindow(imgUrl);
 		}
 	};
-	/**
-	 * @param user2		User2名子
-	 * @param mainText	更新後的mainText
-	 * @param changed	是否要套用新的mainText
-	 */
-	public void setUserAndTextChanged(String user2, String mainText, boolean changed)	//動態更新 exAdapter 的內容
-	{
-		user2Text = user2;
-		changedText = mainText;
-		textChanged = changed;
-		notifyDataSetChanged();
-	}
 	
-	public void addListGroupItems(Map<Integer, String[]> items, int ID)
+	public void addListGroupItems(Map<String, String[]> items, String ID)
 	{
 		listGroup.add(items);
-		IDList.add(ID);
-		notifyDataSetChanged();
+		ID1List.add(ID);
+		currentID = ID;
+	}
+	
+	public void addUser2Id(String ID)
+	{
+		ID2List.add(ID);
+	}
+	
+	public void addUser2Text(String name)
+	{
+		if (UsersData.isUserExists(name))
+			user2List.add(name);
+		else
+			user2List.add("");
+		Log.i("User2ListSize", ""+user2List.size());
 	}
 	
 	public void addMainText(String text)
 	{
 		mainTextList.add(text);
+		addChildList();
 		notifyDataSetChanged();
+	}
+	
+	public void setCurrentID(String ID)
+	{
+		currentID = ID;
+	}
+	
+	private void addChildList()
+	{
+		List<Map<String, String>> listChildItems = new ArrayList<Map<String, String>>();
+		Map<String, String> listChildItem = new HashMap<String, String>();
+
+		listChildItem.put("childSample", "www.google.com\t" + "\nbrack@gmail.com\t\n+903345678\t");
+		listChildItems.add(listChildItem);
+		
+		listChild.add(listChildItems);
 	}
 }

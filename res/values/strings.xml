@@ -3,7 +3,7 @@
 
     <string name="app_name">TheMassiveList</string>
     <string name="InputHint">Enter a number</string>
-    <string name="Version">7.1</string>
+    <string name="Version">7.2</string>
     <string name="cache_dirname">TheMassiveList/image_cache</string>
     <string name="ImageUrl">http://60.199.201.66/geticonlist.php</string>
     <string name="UnknowImageURL">Unknow Image URL!</string>

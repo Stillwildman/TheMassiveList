@@ -9,28 +9,21 @@ import android.annotation.SuppressLint;
 
 public class UsersData {
 	
-	private static ArrayList<Integer> UID = new ArrayList<Integer>();
+	private static ArrayList<String> UID = new ArrayList<String>();
 	private static ArrayList<String[]> userData = new ArrayList<String[]>();
 	
 	public static int Male = 0;
 	public static int Female = 1;
 	
-	public UsersData (ArrayList<Integer> UIDs, ArrayList<String[]> userData)
+	public UsersData (ArrayList<String> UIDs, ArrayList<String[]> userData)
 	{
 		UsersData.UID = UIDs;
 		UsersData.userData = userData;
 	}
 	
-	public static void addUserIdAndData(int id, String name, int gender, String userImgUrl)
+	public static void addUserIdAndData(String id, String name, int gender, String userImgUrl)
 	{
-		String sex;
-		if (gender == 0)
-			sex = "Boy";
-		else if (gender == 1)
-			sex = "Girl";
-		else
-			sex = "Unknow";
-		
+		String sex = String.valueOf(gender);
 		String[] dataArr = new String[] {name, sex, userImgUrl};
 		
 		UID.add(id);
@@ -42,15 +35,15 @@ public class UsersData {
 		return UID.size();
 	}
 	
-	public static int getUID(int idCount)
+	public static String getUID(int idCount)
 	{
 		return UID.get(idCount);
 	}
 	
-	public static Integer[] getUidArr()
+	public static String[] getUidArr()
 	{
-		Integer[] uidTempArr = new Integer[UID.size()];
-		Integer[] uidArr = UID.toArray(uidTempArr);
+		String[] uidTempArr = new String[UID.size()];
+		String[] uidArr = UID.toArray(uidTempArr);
 		return uidArr;
 	}
 	
@@ -66,18 +59,28 @@ public class UsersData {
 		return userArr;
 	}
 	
+	public static boolean isUserExists(String userName)
+	{
+		for (String name: getUserNameArr())
+		{
+			if (name.equals(userName))
+				return true;
+		}
+		return false;
+	}
+	
 	@SuppressLint("UseSparseArrays")
-	public static Map<Integer, String[]> getUserMap(int idCount)
+	public static Map<String, String[]> getUserMap(String idCount)
 	{
 		int count = UID.size();
-		List<Map<Integer, String[]>> itemList = new ArrayList<Map<Integer, String[]>>();
+		List<Map<String, String[]>> itemList = new ArrayList<Map<String, String[]>>();
 		
 		for (int i = 0; i < count; i++)
 		{
-			HashMap<Integer, String[]> items = new HashMap<Integer, String[]>();
+			HashMap<String, String[]> items = new HashMap<String, String[]>();
 			items.put(UID.get(i), userData.get(i));
 			itemList.add(items);
 		}
-		return itemList.get(idCount);
+		return itemList.get(Integer.parseInt(idCount));
 	}
 }
