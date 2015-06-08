@@ -5,20 +5,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import android.annotation.SuppressLint;
-
 public class UsersData {
 	
 	private static ArrayList<String> UID = new ArrayList<String>();
 	private static ArrayList<String[]> userData = new ArrayList<String[]>();
 	
-	public static int Male = 0;
-	public static int Female = 1;
+	public static List<Map<String, String[]>> userMapList = new ArrayList<Map<String, String[]>>();
+	public static ArrayList<String> mainText = new ArrayList<String>();
+	public static ArrayList<String[]> userIdStack = new ArrayList<String[]>();
 	
-	public UsersData (ArrayList<String> UIDs, ArrayList<String[]> userData)
+	public UsersData ()
 	{
-		UsersData.UID = UIDs;
-		UsersData.userData = userData;
+		//UsersData.UID = UIDs;
+		//UsersData.userData = userData;
 	}
 	
 	public static void addUserIdAndData(String id, String name, int gender, String userImgUrl)
@@ -69,18 +68,37 @@ public class UsersData {
 		return false;
 	}
 	
-	@SuppressLint("UseSparseArrays")
-	public static Map<String, String[]> getUserMap(String idCount)
+	public static void addUserMap(String idCount)
 	{
-		int count = UID.size();
-		List<Map<String, String[]>> itemList = new ArrayList<Map<String, String[]>>();
-		
-		for (int i = 0; i < count; i++)
-		{
 			HashMap<String, String[]> items = new HashMap<String, String[]>();
-			items.put(UID.get(i), userData.get(i));
-			itemList.add(items);
+			items.put(UID.get(Integer.parseInt(idCount)), userData.get(Integer.parseInt(idCount)));
+			userMapList.add(items);
+	}
+	
+	public static void addMainText(String text)
+	{
+		mainText.add(text);
+	}
+	
+	public static void addUserIdStack(String id1, String id2)
+	{
+		userIdStack.add(new String[] {id1, id2});
+	}
+	
+	public static String[] findUserDataById(String userId)
+	{
+		for (int i = 0; i < UID.size(); i++)
+		{
+			if (UID.get(i).equals(userId))
+				return userData.get(i);
 		}
-		return itemList.get(Integer.parseInt(idCount));
+		return new String[]{"Unknow", "XX", ""};
+	}
+	
+	public static void deleteOneLine(int position)
+	{
+		userMapList.remove(position);
+		mainText.remove(position);
+		userIdStack.remove(position);
 	}
 }

@@ -36,10 +36,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnKeyListener;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
@@ -66,9 +64,6 @@ public class MainListActivity extends Activity
 	private static Spinner userSpinner;
 	
 	private EditText numberInput;
-	
-	private List<Map<String, String[]>> listGroup;
-	private List<List<Map<String, String>>> listChild;
 	
 	private String defualtNum = "5";
 	private String inputNum = "";
@@ -102,7 +97,7 @@ public class MainListActivity extends Activity
 		textInput = (EditText) findViewById(R.id.textInput);
 		textInput.setFocusable(true);
 		textInput.setFocusableInTouchMode(true);
-		textInput.setOnKeyListener(goKey);
+		//textInput.setOnKeyListener(goKey);
 		
 		userSpinner = (Spinner) findViewById(R.id.userSpinner);
 		
@@ -150,6 +145,7 @@ public class MainListActivity extends Activity
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 	class createAsyncList extends AsyncTask<String, Integer, Void>
 	{
+		private List<List<Map<String, String>>> listChild;
 		private int count;
 		
 		private Dialog dialog;
@@ -160,7 +156,6 @@ public class MainListActivity extends Activity
 		@Override
 		protected void onPreExecute()
 		{
-			listGroup = new ArrayList<Map<String, String[]>>();
 			listChild = new ArrayList<List<Map<String, String>>>();
 			
 			LayoutInflater inflater = getLayoutInflater();
@@ -199,13 +194,12 @@ public class MainListActivity extends Activity
 				userImg = urlList[ran.nextInt(urlList.length)];
 				UsersData.addUserIdAndData(uid, userName, gender, userImg);
 			}
-			
 			ThreadLogUtils.logThread();
 			return null;
 		}
 		protected void onPostExecute(Void result)
 		{
-			exAdapter = new ExAdapter(MainListActivity.this, listGroup, listChild);
+			exAdapter = new ExAdapter(MainListActivity.this, listChild);
 			
 			if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR2)
 				exList.setIndicatorBounds(exList.getRight()-40, exList.getWidth());
@@ -259,31 +253,38 @@ public class MainListActivity extends Activity
 	{
 		//ran = new Random();
 		//String ranIDcount = UsersData.getUID(ran.nextInt(UsersData.getCount()));
-		String userID = UsersData.getUID(userSpinner.getSelectedItemPosition());
+		String user1Id = UsersData.getUID(userSpinner.getSelectedItemPosition());
 		
 		String toUserText = "";
 		input = textInput.getText().toString();
-		if (input.indexOf("@") == 0)
+		Log.i("toUserText", textInput.getText().toString());
+		if (input.indexOf("@") == 0 && input.contains(" "))
 		{
 			toUserText = input.substring(1, input.indexOf(" "));
-			if (UsersData.isUserExists(toUserText))
-				input = input.substring(input.indexOf(" "));
+			if (UsersData.isUserExists(toUserText)) {
+				input = input.substring(input.indexOf(" ")+1);
+				textInput.setText("@" + toUserText + " ");
+				textInput.setSelection(toUserText.length()+2);
+			} else {
+				user2Id = new String();
+				textInput.setText("");
+			}
+		} else {
+			user2Id = new String();
+			textInput.setText("");
 		}
-		exAdapter.addListGroupItems(UsersData.getUserMap(userID), userID);
-		exAdapter.addUser2Id(user2Id);
+		UsersData.addUserMap(user1Id);
+		UsersData.addUserIdStack(user1Id, user2Id);
 
-		if (!input.isEmpty()) {					//判斷 textInput 不是空的話，就顯示來自使用者的input
-			exAdapter.addMainText(input);
-			exAdapter.addUser2Text(toUserText);
-		}
-		else {
-			exAdapter.addMainText(getString(R.string.TestingText));
-			exAdapter.addUser2Text(toUserText);
-		}
-		user2Id = new String();
-		textInput.setText("");
+		if (!input.isEmpty())					//判斷 textInput 不是空的話，就顯示來自使用者的input
+			UsersData.addMainText(input);
+		else
+			UsersData.addMainText(getString(R.string.TestingText));
+			
+		exAdapter.addChildList();
+		exAdapter.notifyDataSetChanged();
 	}
-	
+	/*
 	OnKeyListener goKey = new OnKeyListener() {					//監聽軟體鍵盤上的動作！
 		@Override
 		public boolean onKey(View v, int keyCode, KeyEvent event) {
@@ -301,7 +302,7 @@ public class MainListActivity extends Activity
 			return false;
 		}
     };
-    
+    */
     public static int getPixels(int dipValue)			//自行定義一個 Dip To Pixels 的功能！
     {
     	Resources res = Resources.getSystem();
@@ -699,8 +700,7 @@ public class MainListActivity extends Activity
 	
 	public void toUser2 (String userID)		//接收從ExAdapter傳來的值，並顯示出User2
 	{
-		Map<String, String[]> user2Map = UsersData.getUserMap(userID);
-		String[] userData = user2Map.get(userID);
+		String[] userData = UsersData.findUserDataById(userID);
 		user2Id = userID;
 		textInput.setText("@" + userData[0] + " ");
 		textInput.setSelection(textInput.getText().length());
@@ -725,6 +725,8 @@ public class MainListActivity extends Activity
 			public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 				String userID = UsersData.getUID(position);
 				exAdapter.setCurrentID(userID);
+				textInput.setText("");
+				Log.i("CurrentID", userID);
 			}
 			@Override
 			public void onNothingSelected(AdapterView<?> parent) { }
@@ -757,7 +759,7 @@ public class MainListActivity extends Activity
 			
 			UsersData.addUserIdAndData(uid, userName, gender, userImgUrl);
 			setUserSpinner();
-			shortMessage("User Added! Your ID is " + uid);
+			shortMessage(userName + " Has Added! Your ID is " + uid);
 		} else
 			shortMessage("(ˊ_>ˋ)");
 	}

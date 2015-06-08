@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import com.vincent.massivelist.LinkTextView.LinkTextViewMovementMethod;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.ClipData;
@@ -27,24 +26,26 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.vincent.massivelist.LinkTextView.LinkTextViewMovementMethod;
 
 @SuppressLint("NewApi")
 public class ExAdapter extends BaseExpandableListAdapter {
 	
 	private Context context;
 	private LayoutInflater inflater;
-	private List<Map<String, String[]>> listGroup;
 	private List<List<Map<String, String>>> listChild;
 	
 	private Random ran;
@@ -55,11 +56,9 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	
 	ImageLoader imageLoader;
 	
-	private ArrayList<String> mainTextList;
-	private String mainText;
+	private String mainText = "";
 	private String[] groupUserData1;
 	private String[] groupUserData2;
-	private ArrayList<String> user2List;
 	private String user1Id;
 	private String user2Id;
 	private String user1Name;
@@ -67,15 +66,12 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	private String user1Gender;
 	private String user2Gender = "";
 	private String user1ImgUrl;
-	private ArrayList<String> ID1List;
-	private ArrayList<String> ID2List;
 	
-	private String currentID = "00";
+	private String currentID;
 	
-	public ExAdapter(Context context, List<Map<String, String[]>> listGroup, List<List<Map<String, String>>> listChild)
+	public ExAdapter(Context context, List<List<Map<String, String>>> listChild)
 	{
 		this.context = context;
-		this.listGroup = listGroup;
 		this.listChild = listChild;
 		
 		inflater = LayoutInflater.from(context);
@@ -84,21 +80,16 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		SmileysParser.init(context);
 		parser = SmileysParser.getInstance();
-		
-		mainTextList = new ArrayList<String>();
-		ID1List = new ArrayList<String>();
-		ID2List = new ArrayList<String>();
-		user2List = new ArrayList<String>();
 	}
 
 	@Override
 	public int getGroupCount() {
-		return listGroup.size();
+		return UsersData.userMapList.size();
 	}
 	
 	@Override
 	public Object getGroup(int groupPosition) {
-		return listGroup.get(groupPosition);
+		return UsersData.userMapList.get(groupPosition);
 	}
 	
 	@Override
@@ -123,6 +114,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			holder.toText1 = (TextView) convertView.findViewById(R.id.toText1);
 			holder.toText2 = (TextView) convertView.findViewById(R.id.toText2);
 			holder.image = (ImageView) convertView.findViewById(R.id.Image1);
+			holder.deleteBtn = (ImageButton) convertView.findViewById(R.id.deleteBtn);
 			
 			convertView.setTag(holder);
 		} else
@@ -131,23 +123,24 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		((ViewGroup)convertView).setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
 		
 		
-		if (!mainTextList.isEmpty())
-			mainText = mainTextList.get(groupPosition);
+		if (!UsersData.mainText.isEmpty())
+			mainText = UsersData.mainText.get(groupPosition);
 		
-		if (!listGroup.isEmpty())
+		if (!UsersData.userMapList.isEmpty())
 		{
-			user1Id = ID1List.get(groupPosition);
-			groupUserData1 = (String[]) listGroup.get(groupPosition).get(user1Id);
+			user1Id = UsersData.userIdStack.get(groupPosition)[0];
+			groupUserData1 = (String[]) UsersData.userMapList.get(groupPosition).get(user1Id);
 			user1Name = groupUserData1[0];
 			user1Gender = groupUserData1[1];
 			user1ImgUrl = groupUserData1[2];
 			
-			user2Name = user2List.get(groupPosition);
+			user2Name = "";
 		}
-		if (!ID2List.get(groupPosition).isEmpty())
+		if (!UsersData.userIdStack.get(groupPosition)[1].isEmpty())
 		{
-			user2Id = ID2List.get(groupPosition);
-			groupUserData2 = (String[]) UsersData.getUserMap(user2Id).get(user2Id);
+			user2Id = UsersData.userIdStack.get(groupPosition)[1];
+			groupUserData2 = UsersData.findUserDataById(user2Id);
+			Log.i("GroupUser2", groupUserData2[0] + " " + groupPosition);
 			user2Name = groupUserData2[0];
 			user2Gender = groupUserData2[1];
 		}
@@ -157,7 +150,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			if (!user1ImgUrl.isEmpty())
 				imageLoader.DisplayImage(user1ImgUrl, holder.image);
 			RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams
-					(MainListActivity.getPixels(35), MainListActivity.getPixels(35));
+					(MainListActivity.getPixels(40), MainListActivity.getPixels(40));
 			params.setMargins(10, 10, 5, 0);
 			holder.image.setPadding(5, 5, 5, 5);
 			holder.image.setLayoutParams(params);
@@ -261,6 +254,9 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		if (user2Gender.equals("1"))
 			holder.userText2.setTextColor(Color.RED);
 		
+		holder.deleteBtn.setTag((int)groupPosition);
+		holder.deleteBtn.setOnClickListener(deleteClick);
+		
 		convertView.setBackgroundColor(Color.WHITE);				//每次 View 到這裡都要先把Color設回White，再去判斷if
 		if (isDivisible(groupPosition, 50))						//不然根據ViewHolder Reuse view的特性，
 			convertView.setBackgroundColor(Color.GRAY);				//已設為Gray的view就算移出去了，還是會馬上被拿回來套用在不對的位置上！
@@ -325,6 +321,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		TextView toText1;
 		TextView toText2;
 		ImageView image;
+		ImageButton deleteBtn;
 	}
 	
 	private boolean isDivisible(int position, int target)		//用於判斷指定的 position 是否為 target 的倍數~(ˋ_>ˊ)
@@ -627,40 +624,20 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		}
 	};
 	
-	public void addListGroupItems(Map<String, String[]> items, String ID)
-	{
-		listGroup.add(items);
-		ID1List.add(ID);
-		currentID = ID;
-	}
-	
-	public void addUser2Id(String ID)
-	{
-		ID2List.add(ID);
-	}
-	
-	public void addUser2Text(String name)
-	{
-		if (UsersData.isUserExists(name))
-			user2List.add(name);
-		else
-			user2List.add("");
-		Log.i("User2ListSize", ""+user2List.size());
-	}
-	
-	public void addMainText(String text)
-	{
-		mainTextList.add(text);
-		addChildList();
-		notifyDataSetChanged();
-	}
+	OnClickListener deleteClick = new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			UsersData.deleteOneLine((Integer) v.getTag());
+			notifyDataSetChanged();
+		}
+	};
 	
 	public void setCurrentID(String ID)
 	{
 		currentID = ID;
 	}
 	
-	private void addChildList()
+	public void addChildList()
 	{
 		List<Map<String, String>> listChildItems = new ArrayList<Map<String, String>>();
 		Map<String, String> listChildItem = new HashMap<String, String>();

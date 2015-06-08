@@ -24,11 +24,11 @@
         android:id="@+id/groupText_User2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_marginRight="5dp"
         android:layout_marginTop="5dp"
         android:layout_toRightOf="@+id/toText1"
         android:background="@drawable/image_button_style"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
         android:textSize="18sp"
         android:visibility="invisible" />
 
@@ -49,7 +49,7 @@
         android:layout_below="@+id/groupText_User2"
         android:layout_marginBottom="10dp"
         android:layout_marginLeft="20dp"
-        android:layout_marginRight="15dp"
+        android:layout_marginRight="30dp"
         android:layout_toRightOf="@+id/Image1"
         android:background="@drawable/press_style01"
         android:textSize="15sp" />
@@ -64,5 +64,15 @@
         android:paddingLeft="5dp"
         android:paddingRight="5dp"
         android:textSize="18sp" />
+
+    <ImageButton
+        android:id="@+id/deleteBtn"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:background="@drawable/button_style03"
+        android:scaleType="centerCrop"
+        android:src="@android:drawable/ic_menu_close_clear_cancel" />
 
 </RelativeLayout>
