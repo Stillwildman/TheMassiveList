@@ -46,7 +46,6 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	
 	private Context context;
 	private LayoutInflater inflater;
-	private List<List<Map<String, String>>> listChild;
 	
 	private Random ran;
 	
@@ -69,10 +68,9 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	
 	private String currentID;
 	
-	public ExAdapter(Context context, List<List<Map<String, String>>> listChild)
+	public ExAdapter(Context context)
 	{
 		this.context = context;
-		this.listChild = listChild;
 		
 		inflater = LayoutInflater.from(context);
 		imageLoader = new ImageLoader(context.getApplicationContext());
@@ -179,7 +177,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 							holder.mainText.setText(parser.addIconSpans(mainText, imgMap));
 						} catch (Exception e) {
 							holder.mainText.setText(parser.addWaitSpans(mainText, imgUrl.substring(imgUrl.lastIndexOf("."))));
-							((MainListActivity) context).shortMessage("Slow Down Please!");
+							((MainListActivity) context).messageShort("Slow Down Please!");
 						}
 					}
 					else {
@@ -268,13 +266,13 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	@Override
 	public int getChildrenCount(int groupPosition) {
 		// TODO Auto-generated method stub
-		return listChild.get(groupPosition).size();
+		return UsersData.listChild.get(groupPosition).size();
 	}
 
 	@Override
 	public Object getChild(int groupPosition, int childPosition) {
 		// TODO Auto-generated method stub
-		return listChild.get(groupPosition).get(childPosition);
+		return UsersData.listChild.get(groupPosition).get(childPosition);
 	}
 
 	@Override
@@ -420,7 +418,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 				}
 				catch(Exception e) {
 					Log.e("ImageBitmap", "OH!!!!!NO~~~~~~~~~");			//如果滑太快，上面的 getDecodedBitmap() 中的工作還來不及完成...
-					((MainListActivity)context).shortMessage("OH!!!!! NO~~~~~");	//然後你又 View 到那一段的話...那就 OH NO 了阿
+					((MainListActivity)context).messageShort("OH!!!!! NO~~~~~");	//然後你又 View 到那一段的話...那就 OH NO 了阿
 				}
 				((MainListActivity) context).LoadingHide();
 				SmileysParser.init(context);
@@ -450,7 +448,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 						ClipboardManager clipBoard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
 						ClipData cliper = ClipData.newPlainText("TheSeletedAll", mainText);
 						clipBoard.setPrimaryClip(cliper);
-						((MainListActivity) context).shortMessage("Text Copied!");
+						((MainListActivity) context).messageShort("Text Copied!");
 						break;
 					case 1:
 						showTextSelectDialog(mainText);
@@ -535,7 +533,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 					ClipboardManager clipBoard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
 					ClipData cliper = ClipData.newPlainText("TheSelected", selectedText);
 					clipBoard.setPrimaryClip(cliper);
-					((MainListActivity) context).shortMessage("Text Copied!");
+					((MainListActivity) context).messageShort("Text Copied!");
 					return true;
 				default:
 					break;
@@ -589,7 +587,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 				ClipboardManager clipBoard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
 				ClipData cliper = ClipData.newPlainText("TheSelected", selectedText);
 				clipBoard.setPrimaryClip(cliper);
-				((MainListActivity) context).shortMessage("Text Copied!");
+				((MainListActivity) context).messageShort("Text Copied!");
 			}
 		});
 	}
@@ -599,7 +597,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		public void onClick(View v) {
 			String IDtext = v.getTag().toString();
 			if (IDtext.equals(currentID))
-				((MainListActivity) context).shortMessage("(ˋ_>ˊ)");
+				((MainListActivity) context).messageShort("(ˋ_>ˊ)");
 			else
 				((MainListActivity) context).toUser2(IDtext);
 		}
@@ -610,7 +608,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		public void onClick(View v) {
 			String IDtext = v.getTag().toString();
 			if (IDtext.equals(currentID))
-				((MainListActivity) context).shortMessage("(ˋ_>ˊ)");
+				((MainListActivity) context).messageShort("(ˋ_>ˊ)");
 			else
 				((MainListActivity) context).toUser2(IDtext);
 		}
@@ -635,16 +633,5 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	public void setCurrentID(String ID)
 	{
 		currentID = ID;
-	}
-	
-	public void addChildList()
-	{
-		List<Map<String, String>> listChildItems = new ArrayList<Map<String, String>>();
-		Map<String, String> listChildItem = new HashMap<String, String>();
-
-		listChildItem.put("childSample", "www.google.com\t" + "\nbrack@gmail.com\t\n+903345678\t");
-		listChildItems.add(listChildItem);
-		
-		listChild.add(listChildItems);
 	}
 }

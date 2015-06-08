@@ -5,7 +5,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import android.annotation.SuppressLint;
@@ -145,7 +144,6 @@ public class MainListActivity extends Activity
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
 	class createAsyncList extends AsyncTask<String, Integer, Void>
 	{
-		private List<List<Map<String, String>>> listChild;
 		private int count;
 		
 		private Dialog dialog;
@@ -156,8 +154,6 @@ public class MainListActivity extends Activity
 		@Override
 		protected void onPreExecute()
 		{
-			listChild = new ArrayList<List<Map<String, String>>>();
-			
 			LayoutInflater inflater = getLayoutInflater();
 			View view = inflater.inflate(R.layout.dialog_loading_layout, null);
 			dialog = new Dialog(MainListActivity.this);
@@ -199,7 +195,7 @@ public class MainListActivity extends Activity
 		}
 		protected void onPostExecute(Void result)
 		{
-			exAdapter = new ExAdapter(MainListActivity.this, listChild);
+			exAdapter = new ExAdapter(MainListActivity.this);
 			
 			if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN_MR2)
 				exList.setIndicatorBounds(exList.getRight()-40, exList.getWidth());
@@ -257,11 +253,12 @@ public class MainListActivity extends Activity
 		
 		String toUserText = "";
 		input = textInput.getText().toString();
-		Log.i("toUserText", textInput.getText().toString());
+		
 		if (input.indexOf("@") == 0 && input.contains(" "))
 		{
 			toUserText = input.substring(1, input.indexOf(" "));
-			if (UsersData.isUserExists(toUserText)) {
+			String userName = UsersData.findUserDataById(toUserText)[0];
+			if (UsersData.isUserExists(userName)) {
 				input = input.substring(input.indexOf(" ")+1);
 				textInput.setText("@" + toUserText + " ");
 				textInput.setSelection(toUserText.length()+2);
@@ -281,7 +278,7 @@ public class MainListActivity extends Activity
 		else
 			UsersData.addMainText(getString(R.string.TestingText));
 			
-		exAdapter.addChildList();
+		UsersData.addChildList("childSample", "www.google.com\t" + "\nbrack@gmail.com\t\n+903345678\t");
 		exAdapter.notifyDataSetChanged();
 	}
 	/*
@@ -340,7 +337,7 @@ public class MainListActivity extends Activity
     			imgBitmap = getDecodedBitmap(imagePath + imgName[1], 80, 80);
     		}catch (Exception e) {
     			Log.e("CreateBtnFailed!!", e.getMessage().toString());
-    			shortMessage("Buttons Create Failed!");
+    			messageShort("Buttons Create Failed!");
     		}
     		ImageButton imgBtn = new ImageButton(this);
     		imgBtn.setImageBitmap(imgBitmap);
@@ -645,7 +642,7 @@ public class MainListActivity extends Activity
 			return imgPathName;
 		}
 		else {
-			shortMessage("Can't Find Image Name in HashMap!");	//有時後會出現這個，表示下載還沒完成，HashMap的 key & value 還沒建立起來...
+			messageShort("Can't Find Image Name in HashMap!");	//有時後會出現這個，表示下載還沒完成，HashMap的 key & value 還沒建立起來...
 			return null;										//但 URL 就已經先丟過來了，所以當然找不到啦~~	
 		}
 	}
@@ -700,9 +697,9 @@ public class MainListActivity extends Activity
 	
 	public void toUser2 (String userID)		//接收從ExAdapter傳來的值，並顯示出User2
 	{
-		String[] userData = UsersData.findUserDataById(userID);
+		//String[] userData = UsersData.findUserDataById(userID);
 		user2Id = userID;
-		textInput.setText("@" + userData[0] + " ");
+		textInput.setText("@" + userID + " ");
 		textInput.setSelection(textInput.getText().length());
 	}
 	
@@ -759,12 +756,12 @@ public class MainListActivity extends Activity
 			
 			UsersData.addUserIdAndData(uid, userName, gender, userImgUrl);
 			setUserSpinner();
-			shortMessage(userName + " Has Added! Your ID is " + uid);
+			messageShort(userName + " Has Added! Your ID is " + uid);
 		} else
-			shortMessage("(ˊ_>ˋ)");
+			messageShort("(ˊ_>ˋ)");
 	}
 	
-	public void shortMessage(String msg)
+	public void messageShort(String msg)
 	{
 		Toast.makeText(MainListActivity.this, msg, Toast.LENGTH_SHORT).show();
 	}
@@ -789,16 +786,23 @@ public class MainListActivity extends Activity
 			if (iconShown)
 				hideIcons();
 			
-			shortMessage("Image Cache Cleared");
+			messageShort("Image Cache Cleared");
 			break;
 		
 		case R.id.menu_test:
+			/*
+			UsersData.deleteAllUsers();
+			userSpinner.removeAllViews();
+			exAdapter.notifyDataSetChanged();
+			*/
+			
 			LinearLayout addUserLayout = (LinearLayout) findViewById(R.id.addUserLayout);
 			if (!addUserLayout.isShown())
 				addUserLayout.setVisibility(View.VISIBLE);
 			else
 				addUserLayout.setVisibility(View.GONE);
 			break;
+			
 		}
 		return true;
 	}

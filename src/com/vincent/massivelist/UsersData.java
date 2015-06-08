@@ -14,6 +14,8 @@ public class UsersData {
 	public static ArrayList<String> mainText = new ArrayList<String>();
 	public static ArrayList<String[]> userIdStack = new ArrayList<String[]>();
 	
+	public static List<List<Map<String, String>>> listChild = new ArrayList<List<Map<String, String>>>();
+	
 	public UsersData ()
 	{
 		//UsersData.UID = UIDs;
@@ -100,5 +102,31 @@ public class UsersData {
 		userMapList.remove(position);
 		mainText.remove(position);
 		userIdStack.remove(position);
+	}
+	
+	public static void deleteUser(int position)
+	{
+		UID.remove(position);
+		userData.remove(position);
+	}
+	
+	public static void deleteAllUsers()
+	{
+		UID.clear();
+		userData.clear();
+		userMapList.clear();
+		mainText.clear();
+		userIdStack.clear();
+	}
+	
+	public static void addChildList(String key, String content)
+	{
+		List<Map<String, String>> listChildItems = new ArrayList<Map<String, String>>();
+		Map<String, String> listChildItem = new HashMap<String, String>();
+
+		listChildItem.put(key, content);
+		listChildItems.add(listChildItem);
+		
+		listChild.add(listChildItems);
 	}
 }
