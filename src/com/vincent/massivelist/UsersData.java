@@ -1,20 +1,22 @@
 package com.vincent.massivelist;
 
+import android.annotation.SuppressLint;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SuppressLint("UseSparseArrays")
 public class UsersData {
 	
 	private static ArrayList<String> UID = new ArrayList<String>();
-	private static ArrayList<String[]> userData = new ArrayList<String[]>();
-	
-	public static List<Map<String, String[]>> userMapList = new ArrayList<Map<String, String[]>>();
-	public static ArrayList<String> mainText = new ArrayList<String>();
-	public static ArrayList<String[]> userIdStack = new ArrayList<String[]>();
 	
 	public static List<List<Map<String, String>>> listChild = new ArrayList<List<Map<String, String>>>();
+	
+	public static HashMap<String, UserModel> userDataMap = new HashMap<String, UserModel>();
+	public static HashMap<Integer, PostModel> postDataMap = new HashMap<Integer, PostModel>();
+	
+	private static ArrayList<Integer> mapPosList = new ArrayList<Integer>();
 	
 	public UsersData ()
 	{
@@ -22,13 +24,9 @@ public class UsersData {
 		//UsersData.userData = userData;
 	}
 	
-	public static void addUserIdAndData(String id, String name, int gender, String userImgUrl)
+	public static void addUserId(String id)
 	{
-		String sex = String.valueOf(gender);
-		String[] dataArr = new String[] {name, sex, userImgUrl};
-		
 		UID.add(id);
-		userData.add(dataArr);
 	}
 	
 	public static int getCount()
@@ -51,9 +49,11 @@ public class UsersData {
 	public static String[] getUserNameArr()
 	{
 		ArrayList<String> tempList = new ArrayList<String>();
-		for (String[] s: userData)
+		UserModel say;
+		for (String s: UID)
 		{
-			tempList.add(s[0]);
+			say = userDataMap.get(s);
+			tempList.add(say.NAME);
 		}
 		String[] userTempArr = new String[tempList.size()];
 		String[] userArr = tempList.toArray(userTempArr);
@@ -69,24 +69,7 @@ public class UsersData {
 		}
 		return false;
 	}
-	
-	public static void addUserMap(String idCount)
-	{
-			HashMap<String, String[]> items = new HashMap<String, String[]>();
-			items.put(UID.get(Integer.parseInt(idCount)), userData.get(Integer.parseInt(idCount)));
-			userMapList.add(items);
-	}
-	
-	public static void addMainText(String text)
-	{
-		mainText.add(text);
-	}
-	
-	public static void addUserIdStack(String id1, String id2)
-	{
-		userIdStack.add(new String[] {id1, id2});
-	}
-	
+	/*
 	public static String[] findUserDataById(String userId)
 	{
 		for (int i = 0; i < UID.size(); i++)
@@ -94,29 +77,15 @@ public class UsersData {
 			if (UID.get(i).equals(userId))
 				return userData.get(i);
 		}
-		return new String[]{"Unknow", "XX", ""};
+		return new String[] {"Unknow", "XX", ""};
 	}
-	
+	*/
 	public static void deleteOneLine(int position)
 	{
-		userMapList.remove(position);
-		mainText.remove(position);
-		userIdStack.remove(position);
-	}
-	
-	public static void deleteUser(int position)
-	{
-		UID.remove(position);
-		userData.remove(position);
-	}
-	
-	public static void deleteAllUsers()
-	{
-		UID.clear();
-		userData.clear();
-		userMapList.clear();
-		mainText.clear();
-		userIdStack.clear();
+		int pos = mapPosList.get(position);
+		postDataMap.remove(pos);
+		mapPosList.remove(position);
+		MainListActivity.debugText.setText("MapSize: " + postDataMap.size() + "  RemovedPos: " + position);
 	}
 	
 	public static void addChildList(String key, String content)
@@ -128,5 +97,17 @@ public class UsersData {
 		listChildItems.add(listChildItem);
 		
 		listChild.add(listChildItems);
+	}
+	
+	public static void addUserData(String uid, String name, String gender, String imgUrl)
+	{
+		userDataMap.put(uid, new UserModel(name, gender, imgUrl));
+	}
+	
+	public static void addPostData(int position, String uid1,String uid2, String name1, String name2, 
+			String gender1, String gender2, String imgUrl1, String imgUrl2, String post)
+	{
+		postDataMap.put(position, new PostModel(uid1, uid2, name1, name2, gender1, gender2, imgUrl1, imgUrl2, post));
+		mapPosList.add(position);
 	}
 }

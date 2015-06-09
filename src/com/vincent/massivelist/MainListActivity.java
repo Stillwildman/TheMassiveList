@@ -37,6 +37,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
@@ -80,6 +82,7 @@ public class MainListActivity extends Activity
 	private String user2Id = "";
 	
 	private Random ran;
+	public static EditText debugText;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -139,6 +142,8 @@ public class MainListActivity extends Activity
 		
 		loading = (ProgressBar) findViewById(R.id.loading);
 		setIconMap = new HashMap<String, Bitmap>();
+		
+		debugText = (EditText) findViewById(R.id.debugText);
 	}
 	
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -176,19 +181,23 @@ public class MainListActivity extends Activity
 			urlList = getResources().getStringArray(R.array.url_array);
 			count = Integer.parseInt(params[0]);
 
-			String uid;
+			String uidFormated;
 			String userName;
-			int gender;
+			String[] genderArr = {"Male", "Female"};
+			String gender;
 			String userImg;
 			
 			for (int i = 0; i < count; i++)
 			{
 				publishProgress(Integer.valueOf(i));
-				uid = String.format("%02d", i);
+				uidFormated = String.format("%02d", i);
 				userName = "User" + i;
-				gender = ran.nextInt(2);
+				
+				gender = genderArr[ran.nextInt(2)];
 				userImg = urlList[ran.nextInt(urlList.length)];
-				UsersData.addUserIdAndData(uid, userName, gender, userImg);
+				
+				UsersData.addUserId(uidFormated);
+				UsersData.addUserData(uidFormated, userName, String.valueOf(gender), userImg);
 			}
 			ThreadLogUtils.logThread();
 			return null;
@@ -245,6 +254,96 @@ public class MainListActivity extends Activity
 		});
 	}
 	
+	class AsyncList extends AsyncTask<String, Integer, Void>
+	{
+		private int count;
+		
+		private Dialog dialog;
+		private TextView loadingText;
+		
+		int position;
+		String user1Id;
+		String userName1;
+		String userGender1;
+		String userImgUrl1;
+
+		String userName2 = "";
+		String userGender2 = "";
+		String userImgUrl2 = "";
+		
+		@SuppressLint("InflateParams")
+		@Override
+		protected void onPreExecute()
+		{
+			LayoutInflater inflater = getLayoutInflater();
+			View view = inflater.inflate(R.layout.dialog_loading_layout, null);
+			dialog = new Dialog(MainListActivity.this);
+			loadingText = (TextView) view.findViewById(R.id.loadingText);
+			dialog.setContentView(view);
+    		dialog.setTitle("Generating List...");
+    		dialog.setCanceledOnTouchOutside(false);
+    		
+    		Window dialogWindow = dialog.getWindow();
+    		WindowManager.LayoutParams windowParams = dialogWindow.getAttributes();
+    		windowParams.alpha = 0.9f;
+    		dialog.show();
+		}
+		
+		@Override
+		protected Void doInBackground(String... params)
+		{
+			count = Integer.parseInt(params[0]);
+			user1Id = params[1];
+
+			UserModel userModel1;
+			UserModel userModel2;
+			
+			for (int i = 0; i < count; i++)
+			{
+				publishProgress(Integer.valueOf(i));
+				
+				position = UsersData.postDataMap.size();
+				/*
+				for (int j = 0; j < UsersData.postDataMap.size(); j++)
+				{
+					if (!UsersData.postDataMap.containsKey(j)) {
+						position = j;
+						break;
+					}
+				}
+				*/
+				userModel1 = UsersData.userDataMap.get(user1Id);
+				userName1 = userModel1.NAME;
+				userGender1 = userModel1.GENDER;
+				userImgUrl1 = userModel1.IMAGE_URL;
+
+				if (!user2Id.isEmpty())
+				{
+					userModel2 = UsersData.userDataMap.get(user2Id);
+					userName2 = userModel2.NAME;
+					userGender2 = userModel2.GENDER;
+					userImgUrl2 = userModel2.IMAGE_URL;
+				}
+				UsersData.addPostData(position, user1Id, user2Id, userName1, userName2, userGender1, userGender2, userImgUrl1, userImgUrl2, input);
+				UsersData.addChildList("childSample", "www.google.com\t" + "\nbrack@gmail.com\t\n+903345678\t");
+			}
+			ThreadLogUtils.logThread();
+			return null;
+		}
+		protected void onPostExecute(Void result)
+		{
+			debugText.setText("MapSize: " + UsersData.postDataMap.size() + "  AddedPos: " + position);
+			exAdapter.notifyDataSetChanged();
+			dialog.dismiss();
+		}
+		protected void onProgressUpdate(Integer...status)
+		{
+			double percent = ((double)status[0] / (double)count) * 10000;
+			percent = Math.floor(percent + 0.5) / 100;
+			loadingText.setText(String.valueOf(status[0]) + "/" + String.valueOf(count) + "\n" + "\n" + percent + "%");
+		}
+	}
+	
 	public void sendClick(View view)
 	{
 		//ran = new Random();
@@ -257,8 +356,7 @@ public class MainListActivity extends Activity
 		if (input.indexOf("@") == 0 && input.contains(" "))
 		{
 			toUserText = input.substring(1, input.indexOf(" "));
-			String userName = UsersData.findUserDataById(toUserText)[0];
-			if (UsersData.isUserExists(userName)) {
+			if (UsersData.isUserExists(toUserText)) {
 				input = input.substring(input.indexOf(" ")+1);
 				textInput.setText("@" + toUserText + " ");
 				textInput.setSelection(toUserText.length()+2);
@@ -270,16 +368,44 @@ public class MainListActivity extends Activity
 			user2Id = new String();
 			textInput.setText("");
 		}
-		UsersData.addUserMap(user1Id);
-		UsersData.addUserIdStack(user1Id, user2Id);
+		
+		new AsyncList().execute("1000", user1Id);
+		/*
+		int position = UsersData.postDataMap.size();
+		
+		for (int j = 0; j < UsersData.postDataMap.size(); j++)
+		{
+			if (!UsersData.postDataMap.containsKey(j)) {
+				position = j;
+				break;
+			}
+		}
+		UserModel userModel1 = UsersData.userDataMap.get(user1Id);
+		String userName1 = userModel1.NAME;
+		String userGender1 = userModel1.GENDER;
+		String userImgUrl1 = userModel1.IMAGE_URL;
 
+		String userName2 = "";
+		String userGender2 = "";
+		String userImgUrl2 = "";
+		if (!user2Id.isEmpty())
+		{
+			UserModel userModel2 = UsersData.userDataMap.get(user2Id);
+			userName2 = userModel2.NAME;
+			userGender2 = userModel2.GENDER;
+			userImgUrl2 = userModel2.IMAGE_URL;
+		}
+		UsersData.addPostData(position, user1Id, user2Id, userName1, userName2, userGender1, userGender2, userImgUrl1, userImgUrl2, input);
+		UsersData.addChildList("childSample", "www.google.com\t" + "\nbrack@gmail.com\t\n+903345678\t");
+		debugText.setText("MapSize: " + UsersData.postDataMap.size() + "  AddedPos: " + position);
+		
+		exAdapter.notifyDataSetChanged();
+		/*
 		if (!input.isEmpty())					//判斷 textInput 不是空的話，就顯示來自使用者的input
 			UsersData.addMainText(input);
 		else
 			UsersData.addMainText(getString(R.string.TestingText));
-			
-		UsersData.addChildList("childSample", "www.google.com\t" + "\nbrack@gmail.com\t\n+903345678\t");
-		exAdapter.notifyDataSetChanged();
+		*/
 	}
 	/*
 	OnKeyListener goKey = new OnKeyListener() {					//監聽軟體鍵盤上的動作！
@@ -697,9 +823,10 @@ public class MainListActivity extends Activity
 	
 	public void toUser2 (String userID)		//接收從ExAdapter傳來的值，並顯示出User2
 	{
+		UserModel userModel = UsersData.userDataMap.get(userID);
 		//String[] userData = UsersData.findUserDataById(userID);
 		user2Id = userID;
-		textInput.setText("@" + userID + " ");
+		textInput.setText("@" + userModel.NAME + " ");
 		textInput.setSelection(textInput.getText().length());
 	}
 	
@@ -729,17 +856,6 @@ public class MainListActivity extends Activity
 			public void onNothingSelected(AdapterView<?> parent) { }
 		});
 	}
-    /*
-	public void scrollToButtom()
-	{
-		exList.post(new Runnable() {
-			@Override
-			public void run() {
-				exList.setSelectedGroup(exAdapter.getGroupCount()-1);
-			}
-		});
-	}
-	*/
 	
 	public void userAddClick(View view)
 	{
@@ -749,17 +865,31 @@ public class MainListActivity extends Activity
 		{
 			addInput.setText("");
 			
-			String uid = String.format("%02d", UsersData.getCount());
-			int gender = ran.nextInt(2);
+			String uidFormated = String.format("%02d", UsersData.getCount());
+			String[] genderArr = {"Male", "Female"};
+			String gender = genderArr[ran.nextInt(2)];
 			String[] urlList = getResources().getStringArray(R.array.url_array);
 			String userImgUrl = urlList[ran.nextInt(urlList.length)];
 			
-			UsersData.addUserIdAndData(uid, userName, gender, userImgUrl);
+			UsersData.addUserId(uidFormated);
+			UsersData.addUserData(uidFormated, userName, String.valueOf(gender), userImgUrl);
 			setUserSpinner();
-			messageShort(userName + " Has Added! Your ID is " + uid);
+			messageShort(userName + " Has Added! Your ID is " + uidFormated);
 		} else
 			messageShort("(ˊ_>ˋ)");
 	}
+	
+	OnScrollListener scrollState = new OnScrollListener() {
+		@Override
+		public void onScrollStateChanged(AbsListView view, int scrollState) {
+			
+		}
+
+		@Override
+		public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+			
+		}
+	};
 	
 	public void messageShort(String msg)
 	{
@@ -790,12 +920,6 @@ public class MainListActivity extends Activity
 			break;
 		
 		case R.id.menu_test:
-			/*
-			UsersData.deleteAllUsers();
-			userSpinner.removeAllViews();
-			exAdapter.notifyDataSetChanged();
-			*/
-			
 			LinearLayout addUserLayout = (LinearLayout) findViewById(R.id.addUserLayout);
 			if (!addUserLayout.isShown())
 				addUserLayout.setVisibility(View.VISIBLE);

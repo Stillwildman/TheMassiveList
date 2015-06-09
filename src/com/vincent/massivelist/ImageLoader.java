@@ -40,7 +40,9 @@ public class ImageLoader
         imgCachePath = Environment.getExternalStorageDirectory().getPath() + "/" + context.getString(R.string.cache_dirname) + "/"; 
     }
     
+    
     final int tempImage = R.drawable.wait01;
+    
     public void DisplayImage(String url, ImageView imageView)
     {
         imageViews.put(imageView, url);

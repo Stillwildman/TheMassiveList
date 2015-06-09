@@ -13,6 +13,22 @@
         android:layout_height="wrap_content" >
 
         <EditText
+            android:id="@+id/debugText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:clickable="false"
+            android:ems="10"
+            android:focusable="false"
+            android:focusableInTouchMode="false" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <EditText
             android:id="@+id/numberInput"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -53,7 +69,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:gravity="center" >
+        android:gravity="center"
+        android:visibility="gone" >
 
         <EditText
             android:id="@+id/userNameInput"
@@ -89,6 +106,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:divider="@color/SteelBlue"
+        android:fastScrollEnabled="true"
         android:stackFromBottom="true"
         android:transcriptMode="normal" >
 
@@ -146,7 +164,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:layout_weight="0"
-                android:background="@drawable/button_style03"
+                android:background="@drawable/button_style04"
                 android:onClick="showIconClick"
                 android:src="@android:drawable/ic_menu_add" />
 

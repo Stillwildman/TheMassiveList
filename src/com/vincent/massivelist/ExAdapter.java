@@ -56,8 +56,6 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	ImageLoader imageLoader;
 	
 	private String mainText = "";
-	private String[] groupUserData1;
-	private String[] groupUserData2;
 	private String user1Id;
 	private String user2Id;
 	private String user1Name;
@@ -67,6 +65,8 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	private String user1ImgUrl;
 	
 	private String currentID;
+	
+	private PostModel postModel;
 	
 	public ExAdapter(Context context)
 	{
@@ -82,12 +82,12 @@ public class ExAdapter extends BaseExpandableListAdapter {
 
 	@Override
 	public int getGroupCount() {
-		return UsersData.userMapList.size();
+		return UsersData.postDataMap.size();
 	}
 	
 	@Override
 	public Object getGroup(int groupPosition) {
-		return UsersData.userMapList.get(groupPosition);
+		return UsersData.postDataMap.get(groupPosition);
 	}
 	
 	@Override
@@ -120,29 +120,21 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		((ViewGroup)convertView).setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
 		
+		postModel = UsersData.postDataMap.get(groupPosition);
 		
-		if (!UsersData.mainText.isEmpty())
-			mainText = UsersData.mainText.get(groupPosition);
+		if (UsersData.postDataMap.containsKey(groupPosition))
+		{
+			mainText = postModel.POST;
 		
-		if (!UsersData.userMapList.isEmpty())
-		{
-			user1Id = UsersData.userIdStack.get(groupPosition)[0];
-			groupUserData1 = (String[]) UsersData.userMapList.get(groupPosition).get(user1Id);
-			user1Name = groupUserData1[0];
-			user1Gender = groupUserData1[1];
-			user1ImgUrl = groupUserData1[2];
+			user1Id = postModel.UID1;
+			user1Name = postModel.NAME1;
+			user1Gender = postModel.GENDER1;
+			user1ImgUrl = postModel.IMAGE_URL1;
 			
-			user2Name = "";
+			user2Id = postModel.UID2;
+			user2Name = postModel.NAME2;
+			user2Gender = postModel.GENDER2;
 		}
-		if (!UsersData.userIdStack.get(groupPosition)[1].isEmpty())
-		{
-			user2Id = UsersData.userIdStack.get(groupPosition)[1];
-			groupUserData2 = UsersData.findUserDataById(user2Id);
-			Log.i("GroupUser2", groupUserData2[0] + " " + groupPosition);
-			user2Name = groupUserData2[0];
-			user2Gender = groupUserData2[1];
-		}
-			
 		try
 		{
 			if (!user1ImgUrl.isEmpty())
@@ -159,8 +151,6 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.e("Oops!", e.getMessage().toString());
-		} finally {
-			notifyDataSetChanged();
 		}
 		
 		if (mainText.contains("http://") || mainText.contains("https://"))
@@ -243,21 +233,21 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		holder.mainText.setTextColor(Color.BLACK);							//此處解釋請參照下面的convertView!
 		holder.userText1.setTextColor(Color.BLACK);
 		holder.userText2.setTextColor(Color.BLACK);
-		if (user1Gender.equals("0"))
+		if (user1Gender.equals("Male"))
 			holder.userText1.setTextColor(Color.BLUE);
-		if (user1Gender.equals("1"))
+		if (user1Gender.equals("Female"))
 			holder.userText1.setTextColor(Color.RED);
-		if (user2Gender.equals("0"))
+		if (user2Gender.equals("Male"))
 			holder.userText2.setTextColor(Color.BLUE);
-		if (user2Gender.equals("1"))
+		if (user2Gender.equals("Female"))
 			holder.userText2.setTextColor(Color.RED);
 		
 		holder.deleteBtn.setTag((int)groupPosition);
 		holder.deleteBtn.setOnClickListener(deleteClick);
 		
-		convertView.setBackgroundColor(Color.WHITE);				//每次 View 到這裡都要先把Color設回White，再去判斷if
-		if (isDivisible(groupPosition, 50))						//不然根據ViewHolder Reuse view的特性，
-			convertView.setBackgroundColor(Color.GRAY);				//已設為Gray的view就算移出去了，還是會馬上被拿回來套用在不對的位置上！
+		//convertView.setBackgroundColor(Color.WHITE);				//每次 View 到這裡都要先把Color設回White，再去判斷if
+		//if (isDivisible(groupPosition, 50))						//不然根據ViewHolder Reuse view的特性，
+		//	convertView.setBackgroundColor(Color.GRAY);				//已設為Gray的view就算移出去了，還是會馬上被拿回來套用在不對的位置上！
 		
 		((MainListActivity) context).showMemory();
 		return convertView;
@@ -596,8 +586,14 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		@Override
 		public void onClick(View v) {
 			String IDtext = v.getTag().toString();
-			if (IDtext.equals(currentID))
-				((MainListActivity) context).messageShort("(ˋ_>ˊ)");
+			MainListActivity.debugText.setText(IDtext + " ");
+			
+			UserModel userModel = UsersData.userDataMap.get(IDtext);
+			MainListActivity.debugText.append(userModel.NAME + " " + userModel.GENDER + " " + userModel.IMAGE_URL);
+			
+			if (IDtext.equals(currentID)) {
+				//((MainListActivity) context).messageShort("(ˋ_>ˊ)");
+			}
 			else
 				((MainListActivity) context).toUser2(IDtext);
 		}
@@ -607,8 +603,14 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		@Override
 		public void onClick(View v) {
 			String IDtext = v.getTag().toString();
-			if (IDtext.equals(currentID))
-				((MainListActivity) context).messageShort("(ˋ_>ˊ)");
+			MainListActivity.debugText.setText(IDtext + " ");
+			
+			UserModel userModel = UsersData.userDataMap.get(IDtext);
+			MainListActivity.debugText.append(userModel.NAME + " " + userModel.GENDER + " " + userModel.IMAGE_URL);
+			
+			if (IDtext.equals(currentID)) {
+				//((MainListActivity) context).messageShort("(ˋ_>ˊ)");
+			}
 			else
 				((MainListActivity) context).toUser2(IDtext);
 		}
