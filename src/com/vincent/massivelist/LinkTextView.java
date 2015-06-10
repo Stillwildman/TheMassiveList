@@ -165,7 +165,6 @@ public class LinkTextView extends TextView
 			}
 			if (action == MotionEvent.ACTION_DOWN)
 			{
-				Log.i("MotionEvent", "Down Down Down~~");
 				motionCanceled = false;
 			}
 			return Touch.onTouchEvent(widget, buffer, event);

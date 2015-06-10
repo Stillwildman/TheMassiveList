@@ -1,10 +1,11 @@
 package com.vincent.massivelist;
 
-import android.annotation.SuppressLint;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import android.annotation.SuppressLint;
 
 @SuppressLint("UseSparseArrays")
 public class UsersData {
@@ -16,7 +17,8 @@ public class UsersData {
 	public static HashMap<String, UserModel> userDataMap = new HashMap<String, UserModel>();
 	public static HashMap<Integer, PostModel> postDataMap = new HashMap<Integer, PostModel>();
 	
-	private static ArrayList<Integer> mapPosList = new ArrayList<Integer>();
+	public static ArrayList<Integer> mapPosList = new ArrayList<Integer>();
+	public static ArrayList<Integer> removedPos = new ArrayList<Integer>();
 	
 	public UsersData ()
 	{
@@ -83,8 +85,12 @@ public class UsersData {
 	public static void deleteOneLine(int position)
 	{
 		int pos = mapPosList.get(position);
+		
 		postDataMap.remove(pos);
 		mapPosList.remove(position);
+		
+		removedPos.add(pos);
+		
 		MainListActivity.debugText.setText("MapSize: " + postDataMap.size() + "  RemovedPos: " + position);
 	}
 	

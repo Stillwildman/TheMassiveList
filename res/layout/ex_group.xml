@@ -75,4 +75,11 @@
         android:scaleType="centerCrop"
         android:src="@android:drawable/ic_menu_close_clear_cancel" />
 
+    <TextView
+        android:id="@+id/groupNumber"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:textSize="18sp" />
+
 </RelativeLayout>

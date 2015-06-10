@@ -65,6 +65,8 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	private String user1ImgUrl;
 	
 	private String currentID;
+	public boolean isScrollFling;
+	public boolean isScrollTouching;
 	
 	private PostModel postModel;
 	
@@ -113,6 +115,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			holder.toText2 = (TextView) convertView.findViewById(R.id.toText2);
 			holder.image = (ImageView) convertView.findViewById(R.id.Image1);
 			holder.deleteBtn = (ImageButton) convertView.findViewById(R.id.deleteBtn);
+			holder.groupNumber = (TextView) convertView.findViewById(R.id.groupNumber);
 			
 			convertView.setTag(holder);
 		} else
@@ -120,9 +123,9 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		
 		((ViewGroup)convertView).setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
 		
-		postModel = UsersData.postDataMap.get(groupPosition);
+		postModel = UsersData.postDataMap.get(UsersData.mapPosList.get(groupPosition));
 		
-		if (UsersData.postDataMap.containsKey(groupPosition))
+		if (UsersData.postDataMap.containsKey(UsersData.mapPosList.get(groupPosition)))
 		{
 			mainText = postModel.POST;
 		
@@ -135,121 +138,129 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			user2Name = postModel.NAME2;
 			user2Gender = postModel.GENDER2;
 		}
-		try
+		if (!isScrollFling)
 		{
-			if (!user1ImgUrl.isEmpty())
-				imageLoader.DisplayImage(user1ImgUrl, holder.image);
-			RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams
-					(MainListActivity.getPixels(40), MainListActivity.getPixels(40));
-			params.setMargins(10, 10, 5, 0);
-			holder.image.setPadding(5, 5, 5, 5);
-			holder.image.setLayoutParams(params);
-		}
-		catch (OutOfMemoryError e) {
-			e.printStackTrace();
-			Log.e("OOM Oops!", e.getMessage().toString());
-		} catch (Exception e) {
-			e.printStackTrace();
-			Log.e("Oops!", e.getMessage().toString());
-		}
-		
-		if (mainText.contains("http://") || mainText.contains("https://"))
-		{
-			List<String> imgUrlList = getImgUrlString(mainText);
-			
-			for (String imgUrl: imgUrlList)
+			try
 			{
-				if (!imgUrl.equals(context.getString(R.string.UnknowImageURL)))
-				{
-					if (imgMap.containsKey(imgUrl))
-					{
-						try {
-							holder.mainText.setText(parser.addIconSpans(mainText, imgMap));
-						} catch (Exception e) {
-							holder.mainText.setText(parser.addWaitSpans(mainText, imgUrl.substring(imgUrl.lastIndexOf("."))));
-							((MainListActivity) context).messageShort("Slow Down Please!");
-						}
-					}
-					else {
-						try {
-							holder.mainText.setText(parser.addWaitSpans(mainText, imgUrl));
-							downloadBitmapByUrl(imgUrl);
-							Log.i("ImageFile", "OH YEAH~~~~~~~~~~");
-						} catch (Exception e) {
-							e.printStackTrace();
-							Log.e("ImageFile", "NO!!!!! What happed~~~");
-						}
-					}
-				} else {
-					holder.mainText.setText(parser.addIconSpans(mainText, imgMap));
-					Log.i("Input URL", "Unknow Image URL!!!!!!");
-				}
+				if (!user1ImgUrl.isEmpty())
+					imageLoader.DisplayImage(user1ImgUrl, holder.image);
+				RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams
+						(MainListActivity.getPixels(40), MainListActivity.getPixels(40));
+				params.setMargins(10, 10, 5, 0);
+				holder.image.setPadding(5, 5, 5, 5);
+				holder.image.setLayoutParams(params);
 			}
-		} else
-			holder.mainText.setText(parser.addIconSpans(mainText, null));
-		
-		holder.mainText.setVisibility(View.VISIBLE);
-		if (mainText.length() == 1 && mainText.equals(" "))
-			holder.mainText.setVisibility(View.GONE);
-		
-		holder.userText1.setText(Html.fromHtml("<u>" + user1Name + "</u>"));
-		
-		holder.userText2.setVisibility(View.INVISIBLE);
-		holder.toText2.setVisibility(View.INVISIBLE);
-		holder.toText1.setText(":");
-		
-		if (!user2Name.isEmpty())			//如果 userName2 不是Empty，也就是有變動過的話...
-		{
-			holder.toText1.setText("-->");
-			holder.toText2.setVisibility(View.VISIBLE);
-			holder.userText2.setVisibility(View.VISIBLE);
-			holder.userText2.setText(Html.fromHtml("<u>" + user2Name + "</u>"));
+			catch (OutOfMemoryError e) {
+				e.printStackTrace();
+				Log.e("OOM Oops!", e.getMessage().toString());
+			} catch (Exception e) {
+				e.printStackTrace();
+				Log.e("Oops!", e.getMessage().toString());
+			} finally {
+				notifyDataSetChanged();
+			}
+
+			if (mainText.contains("http://") || mainText.contains("https://"))
+			{
+				List<String> imgUrlList = getImgUrlString(mainText);
+
+				for (String imgUrl: imgUrlList)
+				{
+					if (!imgUrl.equals(context.getString(R.string.UnknowImageURL)))
+					{
+						if (imgMap.containsKey(imgUrl))
+						{
+							try {
+								holder.mainText.setText(parser.addIconSpans(mainText, imgMap));
+							} catch (Exception e) {
+								holder.mainText.setText(parser.addWaitSpans(mainText, imgUrl.substring(imgUrl.lastIndexOf("."))));
+								((MainListActivity) context).messageShort("Slow Down Please!");
+							}
+						}
+						else {
+							try {
+								holder.mainText.setText(parser.addWaitSpans(mainText, imgUrl));
+								downloadBitmapByUrl(imgUrl);
+								Log.i("ImageFile", "OH YEAH~~~~~~~~~~");
+							} catch (Exception e) {
+								e.printStackTrace();
+								Log.e("ImageFile", "NO!!!!! What happed~~~");
+							}
+						}
+					} else {
+						holder.mainText.setText(parser.addIconSpans(mainText, imgMap));
+						Log.i("Input URL", "Unknow Image URL!!!!!!");
+					}
+				}
+			} else
+				holder.mainText.setText(parser.addIconSpans(mainText, null));
+
+			holder.mainText.setVisibility(View.VISIBLE);
+			if (mainText.length() == 1 && mainText.equals(" "))
+				holder.mainText.setVisibility(View.GONE);
+
+			holder.userText1.setText(Html.fromHtml("<u>" + user1Name + "</u>"));
+			
+			if (!isScrollTouching)
+			{
+				holder.userText2.setVisibility(View.INVISIBLE);
+				holder.toText2.setVisibility(View.INVISIBLE);
+				holder.toText1.setText(":");
+
+				if (!user2Name.isEmpty())			//如果 userName2 不是Empty，也就是有變動過的話...
+				{
+					holder.toText1.setText("-->");
+					holder.toText2.setVisibility(View.VISIBLE);
+					holder.userText2.setVisibility(View.VISIBLE);
+					holder.userText2.setText(Html.fromHtml("<u>" + user2Name + "</u>"));
+				}
+
+				holder.image.setFocusable(false);
+				holder.image.setFocusableInTouchMode(false);
+				holder.image.setClickable(true);
+				holder.image.setTag(user1ImgUrl);
+				holder.image.setOnClickListener(imgClick);
+
+				holder.mainText.setLongClickable(true);
+				holder.mainText.setTag(holder.mainText.getText().toString());
+				holder.mainText.setOnLongClickListener(longClick);
+				holder.mainText.setAutoLinkMask(Linkify.ALL);		//手動設定LinkMask，但在這裡設的話，它只會幫你標線，不會有點擊事件！
+				holder.mainText.setMovementMethod(LinkTextViewMovementMethod.getInstance());	//因此要再 setMovementMethod 給它，
+																								//這裡指定給我們客製化的 LinkTextView ~ 
+				holder.userText1.setFocusable(false);
+				holder.userText1.setFocusableInTouchMode(false);
+				holder.userText1.setClickable(true);
+				holder.userText1.setTag(user1Id);
+				holder.userText1.setOnClickListener(user1Click);
+
+				holder.userText2.setFocusable(false);
+				holder.userText2.setFocusableInTouchMode(false);
+				holder.userText2.setClickable(true);
+				holder.userText2.setTag(user2Id);
+				holder.userText2.setOnClickListener(user2Click);
+
+				holder.mainText.setTextColor(Color.BLACK);							//此處解釋請參照下面的convertView!
+				holder.userText1.setTextColor(Color.BLACK);
+				holder.userText2.setTextColor(Color.BLACK);
+				if (user1Gender.equals("Male"))
+					holder.userText1.setTextColor(Color.BLUE);
+				if (user1Gender.equals("Female"))
+					holder.userText1.setTextColor(Color.RED);
+				if (user2Gender.equals("Male"))
+					holder.userText2.setTextColor(Color.BLUE);
+				if (user2Gender.equals("Female"))
+					holder.userText2.setTextColor(Color.RED);
+
+				holder.deleteBtn.setTag((int)groupPosition);
+				holder.deleteBtn.setOnClickListener(deleteClick);
+
+				//convertView.setBackgroundColor(Color.WHITE);				//每次 View 到這裡都要先把Color設回White，再去判斷if
+				//if (isDivisible(groupPosition, 100))						//不然根據ViewHolder Reuse view的特性，
+				//	convertView.setBackgroundColor(Color.GRAY);				//已設為Gray的view就算移出去了，還是會馬上被拿回來套用在不對的位置上！
+			}
 		}
-		
-		holder.image.setFocusable(false);
-		holder.image.setFocusableInTouchMode(false);
-		holder.image.setClickable(true);
-		holder.image.setTag(user1ImgUrl);
-		holder.image.setOnClickListener(imgClick);
-		
-		holder.mainText.setLongClickable(true);
-		holder.mainText.setTag(holder.mainText.getText().toString());
-		holder.mainText.setOnLongClickListener(longClick);
-		holder.mainText.setAutoLinkMask(Linkify.ALL);		//手動設定LinkMask，但在這裡設的話，它只會幫你標線，不會有點擊事件！
-		holder.mainText.setMovementMethod(LinkTextViewMovementMethod.getInstance());	//因此要再 setMovementMethod 給它，
-																						//這裡指定給我們客製化的 LinkTextView ~ 
-		holder.userText1.setFocusable(false);
-		holder.userText1.setFocusableInTouchMode(false);
-		holder.userText1.setClickable(true);
-		holder.userText1.setTag(user1Id);
-		holder.userText1.setOnClickListener(user1Click);
-		
-		holder.userText2.setFocusable(false);
-		holder.userText2.setFocusableInTouchMode(false);
-		holder.userText2.setClickable(true);
-		holder.userText2.setTag(user2Id);
-		holder.userText2.setOnClickListener(user2Click);
-		
-		holder.mainText.setTextColor(Color.BLACK);							//此處解釋請參照下面的convertView!
-		holder.userText1.setTextColor(Color.BLACK);
-		holder.userText2.setTextColor(Color.BLACK);
-		if (user1Gender.equals("Male"))
-			holder.userText1.setTextColor(Color.BLUE);
-		if (user1Gender.equals("Female"))
-			holder.userText1.setTextColor(Color.RED);
-		if (user2Gender.equals("Male"))
-			holder.userText2.setTextColor(Color.BLUE);
-		if (user2Gender.equals("Female"))
-			holder.userText2.setTextColor(Color.RED);
-		
-		holder.deleteBtn.setTag((int)groupPosition);
-		holder.deleteBtn.setOnClickListener(deleteClick);
-		
-		//convertView.setBackgroundColor(Color.WHITE);				//每次 View 到這裡都要先把Color設回White，再去判斷if
-		//if (isDivisible(groupPosition, 50))						//不然根據ViewHolder Reuse view的特性，
-		//	convertView.setBackgroundColor(Color.GRAY);				//已設為Gray的view就算移出去了，還是會馬上被拿回來套用在不對的位置上！
-		
 		((MainListActivity) context).showMemory();
+		holder.groupNumber.setText(""+(groupPosition+1));
 		return convertView;
 	}
 	
@@ -310,6 +321,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		TextView toText2;
 		ImageView image;
 		ImageButton deleteBtn;
+		TextView groupNumber;
 	}
 	
 	private boolean isDivisible(int position, int target)		//用於判斷指定的 position 是否為 target 的倍數~(ˋ_>ˊ)

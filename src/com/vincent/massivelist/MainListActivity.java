@@ -82,6 +82,7 @@ public class MainListActivity extends Activity
 	private String user2Id = "";
 	
 	private Random ran;
+	private TextView memoryText;
 	public static EditText debugText;
 	
 	@Override
@@ -93,6 +94,7 @@ public class MainListActivity extends Activity
 		this.setTitle(getResources().getString(R.string.app_name) + "_v" + getResources().getString(R.string.Version));
 		
 		exList = (ExpandableListView) findViewById(R.id.sampleExList);
+		memoryText = (TextView) findViewById(R.id.memoryText);
 		
 		new createAsyncList().execute(defualtNum);
 		
@@ -212,6 +214,7 @@ public class MainListActivity extends Activity
 				exList.setIndicatorBoundsRelative(exList.getRight()-40, exList.getWidth());
 			
 			exList.setAdapter(exAdapter);
+			exList.setOnScrollListener(scrollState);
 			dialog.dismiss();
 			setUserSpinner();
 		}
@@ -225,8 +228,6 @@ public class MainListActivity extends Activity
 	
 	public void showMemory()
 	{
-		TextView memTip = (TextView) findViewById(R.id.memTip);
-		
 		ActivityManager am = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
 		MemoryInfo mi = new MemoryInfo();
 		am.getMemoryInfo(mi);
@@ -235,7 +236,7 @@ public class MainListActivity extends Activity
 		//String freeMem = String.valueOf(freeMemory) + "MB"; 
 		String avaMem = String.valueOf(Formatter.formatFileSize(this, availableMem));
 		
-		memTip.setText("Memory: " + avaMem);
+		memoryText.setText("Mem:\n" + avaMem);
 	}
 	
 	public void collapseOther()
@@ -260,6 +261,9 @@ public class MainListActivity extends Activity
 		
 		private Dialog dialog;
 		private TextView loadingText;
+		
+		private UserModel userModel1;
+		private UserModel userModel2;
 		
 		int position;
 		String user1Id;
@@ -295,37 +299,37 @@ public class MainListActivity extends Activity
 			count = Integer.parseInt(params[0]);
 			user1Id = params[1];
 
-			UserModel userModel1;
-			UserModel userModel2;
-			
 			for (int i = 0; i < count; i++)
 			{
 				publishProgress(Integer.valueOf(i));
-				
-				position = UsersData.postDataMap.size();
-				/*
-				for (int j = 0; j < UsersData.postDataMap.size(); j++)
-				{
-					if (!UsersData.postDataMap.containsKey(j)) {
-						position = j;
-						break;
-					}
-				}
-				*/
-				userModel1 = UsersData.userDataMap.get(user1Id);
-				userName1 = userModel1.NAME;
-				userGender1 = userModel1.GENDER;
-				userImgUrl1 = userModel1.IMAGE_URL;
 
-				if (!user2Id.isEmpty())
-				{
-					userModel2 = UsersData.userDataMap.get(user2Id);
-					userName2 = userModel2.NAME;
-					userGender2 = userModel2.GENDER;
-					userImgUrl2 = userModel2.IMAGE_URL;
-				}
-				UsersData.addPostData(position, user1Id, user2Id, userName1, userName2, userGender1, userGender2, userImgUrl1, userImgUrl2, input);
-				UsersData.addChildList("childSample", "www.google.com\t" + "\nbrack@gmail.com\t\n+903345678\t");
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						position = UsersData.postDataMap.size();
+						
+						if (!UsersData.removedPos.isEmpty()) {
+							position = UsersData.removedPos.get(0);
+							UsersData.removedPos.remove(0);
+						}
+						userModel1 = UsersData.userDataMap.get(user1Id);
+						userModel2 = UsersData.userDataMap.get(user2Id);
+						
+						userName1 = userModel1.NAME;
+						userGender1 = userModel1.GENDER;
+						userImgUrl1 = userModel1.IMAGE_URL;
+
+						if (!user2Id.isEmpty())
+						{
+							userName2 = userModel2.NAME;
+							userGender2 = userModel2.GENDER;
+							userImgUrl2 = userModel2.IMAGE_URL;
+						}
+						UsersData.addPostData(position, user1Id, user2Id, userName1, userName2, 
+								userGender1, userGender2, userImgUrl1, userImgUrl2, input);
+						UsersData.addChildList("childSample", "www.google.com\t" + "\nbrack@gmail.com\t\n+903345678\t");
+					}
+				});
 			}
 			ThreadLogUtils.logThread();
 			return null;
@@ -348,7 +352,7 @@ public class MainListActivity extends Activity
 	{
 		//ran = new Random();
 		//String ranIDcount = UsersData.getUID(ran.nextInt(UsersData.getCount()));
-		String user1Id = UsersData.getUID(userSpinner.getSelectedItemPosition());
+		final String user1Id = UsersData.getUID(userSpinner.getSelectedItemPosition());
 		
 		String toUserText = "";
 		input = textInput.getText().toString();
@@ -368,44 +372,41 @@ public class MainListActivity extends Activity
 			user2Id = new String();
 			textInput.setText("");
 		}
-		
-		new AsyncList().execute("1000", user1Id);
+		new AsyncList().execute("5000", user1Id);
 		/*
-		int position = UsersData.postDataMap.size();
-		
-		for (int j = 0; j < UsersData.postDataMap.size(); j++)
-		{
-			if (!UsersData.postDataMap.containsKey(j)) {
-				position = j;
-				break;
-			}
-		}
-		UserModel userModel1 = UsersData.userDataMap.get(user1Id);
-		String userName1 = userModel1.NAME;
-		String userGender1 = userModel1.GENDER;
-		String userImgUrl1 = userModel1.IMAGE_URL;
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				int position = UsersData.postDataMap.size();
 
-		String userName2 = "";
-		String userGender2 = "";
-		String userImgUrl2 = "";
-		if (!user2Id.isEmpty())
-		{
-			UserModel userModel2 = UsersData.userDataMap.get(user2Id);
-			userName2 = userModel2.NAME;
-			userGender2 = userModel2.GENDER;
-			userImgUrl2 = userModel2.IMAGE_URL;
-		}
-		UsersData.addPostData(position, user1Id, user2Id, userName1, userName2, userGender1, userGender2, userImgUrl1, userImgUrl2, input);
-		UsersData.addChildList("childSample", "www.google.com\t" + "\nbrack@gmail.com\t\n+903345678\t");
-		debugText.setText("MapSize: " + UsersData.postDataMap.size() + "  AddedPos: " + position);
-		
-		exAdapter.notifyDataSetChanged();
-		/*
-		if (!input.isEmpty())					//判斷 textInput 不是空的話，就顯示來自使用者的input
-			UsersData.addMainText(input);
-		else
-			UsersData.addMainText(getString(R.string.TestingText));
+				if (!UsersData.removedPos.isEmpty()) {
+					position = UsersData.removedPos.get(0);
+					UsersData.removedPos.remove(0);
+				}
+				UserModel userModel1 = UsersData.userDataMap.get(user1Id);
+				String userName1 = userModel1.NAME;
+				String userGender1 = userModel1.GENDER;
+				String userImgUrl1 = userModel1.IMAGE_URL;
+
+				String userName2 = "";
+				String userGender2 = "";
+				String userImgUrl2 = "";
+				if (!user2Id.isEmpty())
+				{
+					UserModel userModel2 = UsersData.userDataMap.get(user2Id);
+					userName2 = userModel2.NAME;
+					userGender2 = userModel2.GENDER;
+					userImgUrl2 = userModel2.IMAGE_URL;
+				}
+				UsersData.addPostData(position, user1Id, user2Id, userName1, userName2, 
+						userGender1, userGender2, userImgUrl1, userImgUrl2, input);
+				UsersData.addChildList("childSample", "www.google.com\t" + "\nbrack@gmail.com\t\n+903345678\t");
+				debugText.setText("MapSize: " + UsersData.postDataMap.size() + "  AddedPos: " + position);
+				exAdapter.notifyDataSetChanged();
+			}
+		});
 		*/
+		exList.setSelectedGroup(exAdapter.getGroupCount()-1);
 	}
 	/*
 	OnKeyListener goKey = new OnKeyListener() {					//監聽軟體鍵盤上的動作！
@@ -882,12 +883,25 @@ public class MainListActivity extends Activity
 	OnScrollListener scrollState = new OnScrollListener() {
 		@Override
 		public void onScrollStateChanged(AbsListView view, int scrollState) {
-			
+			switch (scrollState)
+			{
+			case AbsListView.OnScrollListener.SCROLL_STATE_IDLE:
+				exAdapter.isScrollFling = false;
+				exAdapter.isScrollTouching = false;
+				exAdapter.notifyDataSetChanged();
+				break;
+			case AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL:
+				exAdapter.isScrollFling = false;
+				exAdapter.isScrollTouching = true;
+				break;
+			case AbsListView.OnScrollListener.SCROLL_STATE_FLING:
+				exAdapter.isScrollFling = true;
+				break;
+			}
 		}
-
 		@Override
 		public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-			
+			//exList.setSelectedGroup(firstVisibleItem);
 		}
 	};
 	
