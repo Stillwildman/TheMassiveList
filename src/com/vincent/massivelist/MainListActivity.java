@@ -338,6 +338,8 @@ public class MainListActivity extends Activity
 		{
 			debugText.setText("MapSize: " + UsersData.postDataMap.size() + "  AddedPos: " + position);
 			exAdapter.notifyDataSetChanged();
+			//exList.smoothScrollToPosition((UsersData.postDataMap.size()-1));
+			exList.setSelectedGroup((exAdapter.getGroupCount()-1));
 			dialog.dismiss();
 		}
 		protected void onProgressUpdate(Integer...status)
@@ -372,8 +374,8 @@ public class MainListActivity extends Activity
 			user2Id = new String();
 			textInput.setText("");
 		}
-		new AsyncList().execute("5000", user1Id);
-		/*
+		//new AsyncList().execute("5000", user1Id);
+		
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -405,8 +407,7 @@ public class MainListActivity extends Activity
 				exAdapter.notifyDataSetChanged();
 			}
 		});
-		*/
-		exList.setSelectedGroup(exAdapter.getGroupCount()-1);
+		
 	}
 	/*
 	OnKeyListener goKey = new OnKeyListener() {					//監聽軟體鍵盤上的動作！

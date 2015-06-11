@@ -25,9 +25,11 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
@@ -67,6 +69,11 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	private String currentID;
 	public boolean isScrollFling;
 	public boolean isScrollTouching;
+	
+	private float posX;
+	private float posY;
+	private float currentX;
+	private float currentY;
 	
 	private PostModel postModel;
 	
@@ -115,6 +122,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 			holder.toText2 = (TextView) convertView.findViewById(R.id.toText2);
 			holder.image = (ImageView) convertView.findViewById(R.id.Image1);
 			holder.deleteBtn = (ImageButton) convertView.findViewById(R.id.deleteBtn);
+			holder.groupLayout = (RelativeLayout) convertView.findViewById(R.id.exGroupLayout);
 			holder.groupNumber = (TextView) convertView.findViewById(R.id.groupNumber);
 			
 			convertView.setTag(holder);
@@ -253,6 +261,8 @@ public class ExAdapter extends BaseExpandableListAdapter {
 
 				holder.deleteBtn.setTag((int)groupPosition);
 				holder.deleteBtn.setOnClickListener(deleteClick);
+				
+				//holder.groupLayout.setOnTouchListener(touching);
 
 				//convertView.setBackgroundColor(Color.WHITE);				//每次 View 到這裡都要先把Color設回White，再去判斷if
 				//if (isDivisible(groupPosition, 100))						//不然根據ViewHolder Reuse view的特性，
@@ -321,6 +331,7 @@ public class ExAdapter extends BaseExpandableListAdapter {
 		TextView toText2;
 		ImageView image;
 		ImageButton deleteBtn;
+		RelativeLayout groupLayout;
 		TextView groupNumber;
 	}
 	
@@ -648,4 +659,31 @@ public class ExAdapter extends BaseExpandableListAdapter {
 	{
 		currentID = ID;
 	}
+	/*
+	@SuppressLint("ClickableViewAccessibility")
+	OnTouchListener touching = new OnTouchListener() {
+		@Override
+		public boolean onTouch(View v, MotionEvent event) {
+			switch (event.getAction())
+			{
+			case MotionEvent.ACTION_DOWN:
+				posX = event.getX();
+				posY = event.getY();
+				Log.i("PosDOWN!!!", "X = " + posX + "\nY = " + posY);
+				break;
+			case MotionEvent.ACTION_MOVE:
+				currentX = event.getX();
+				currentY = event.getY();
+				Log.i("PosMOVE!!!", "X = " + currentX + "\nY = " + currentY);
+				break;
+			case MotionEvent.ACTION_UP:
+				currentX = event.getX();
+				currentY = event.getY();
+				Log.i("PosUP!!!", "X = " + currentX + "\nY = " + currentY);
+				break;
+			}
+			return false;
+		}
+	};
+	*/
 }
